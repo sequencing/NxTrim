@@ -36,10 +36,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 BOOST
 
+
 ##INSTALLATION
-git clone blah
-cd nxtrim
-make 
+
+git clone git@github.com:sequencing/NxTrim.git
+cd NxTrim
+make
 
 ##Brief introduction to Nextera Mate Pair Libraries
 
