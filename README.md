@@ -32,18 +32,18 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-####DEPENDENCES
+####Dependences
 
 BOOST
 
 
-####INSTALLATION
+####Installations
 ```
 git clone git@github.com:sequencing/NxTrim.git
 cd NxTrim
 make
 ```
-####USAGE
+####Usage
 
 ```
 ./nxtrim -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz -O sample --rc
@@ -54,3 +54,9 @@ make
 http://res.illumina.com/documents/products/technotes/technote_nextera_matepair_data_processing.pdf
 
 http://res.illumina.com/documents/products/appnotes/appnote-nextera-mate-pair-bacteria.pdf
+
+##Example data
+
+https://basespace.illumina.com/s/TXv32Ve6wTl9
+
+Free registration required.
