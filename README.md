@@ -33,7 +33,7 @@ Assemble with SPAdes:
 cat sample.mp.fastq.gz sample.unknown.fastq.gz > sample.allmp.fastq.gz
 spades.py -k 21,33,55,77 -t 4 --careful --pe1-s sample.se.fastq.gz --pe2-12 sample.pe.fastq.gz --hqmp3-12 sample.allmp.fastq.gz --hqmp3-fr --careful -o output_dir
 ```
-Note we concatenate the unknown/mp libraries for SPAdes.  This command is suitable for 2x151bp data, if you have 2x251 then use `-k 21,33,55,77,127`
+Note we concatenate the unknown/mp libraries for SPAdes.  This command is suitable for 2x151bp data, if you have 2x251bp then use `-k 21,33,55,77,127`
 
 ####References:
 
