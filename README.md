@@ -38,11 +38,11 @@ BOOST
 
 
 ##INSTALLATION
-
+```
 git clone git@github.com:sequencing/NxTrim.git
 cd NxTrim
 make
-
+```
 ##Brief introduction to Nextera Mate Pair Libraries
 
 The Nextera mate pair library involves circularising large (up to 12kb with a median of ~3kb) DNA fragments with the junction adapter:
