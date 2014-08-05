@@ -10,7 +10,7 @@ See LICENSE.txt for details (BSD License).
 BOOST
 
 
-####Installations
+####Installation
 ```
 git clone git@github.com:sequencing/NxTrim.git
 cd NxTrim
@@ -28,7 +28,7 @@ http://res.illumina.com/documents/products/technotes/technote_nextera_matepair_d
 
 http://res.illumina.com/documents/products/appnotes/appnote-nextera-mate-pair-bacteria.pdf
 
-##Example data
+####Example data:
 
 https://basespace.illumina.com/s/TXv32Ve6wTl9
 
