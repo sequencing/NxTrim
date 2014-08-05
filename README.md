@@ -43,9 +43,15 @@ git clone git@github.com:sequencing/NxTrim.git
 cd NxTrim
 make
 ```
-##Brief introduction to Nextera Mate Pair Libraries
+##USAGE
 
-The Nextera mate pair library involves circularising large (up to 12kb with a median of ~3kb) DNA fragments with the junction adapter:
+```
+./nxtrim -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz -O sample --rc
+```
+
+##BACKGROUND
+
+The Nextera mate pair libraries involve circularising large (up to 12kb with a median of ~4kb) DNA fragments with the junction adapter:
 
 ```
     CTGTCTCTTATACACATCT+AGATGTGTATAAGAGACAG
@@ -84,7 +90,6 @@ R1--------------------------------------------------->
   XXCTGTCTCTTATACACATCTAGATGTGTATAAGAGACAGYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
                                                                                                   <---------------------------------------------------R2
 ```
-##Adapter trimming logic
 
 Clearly the artificial DNA sequence in the adapter needs to be removed before any analysis.  We now describe our adapter trimming routine, which attempts to maximise the amount of genomic DNA retained.  We achieve this by creating four "virtual" libraries:
 
@@ -92,116 +97,6 @@ Clearly the artificial DNA sequence in the adapter needs to be removed before an
 	2. UNKNOWN: Unknown (but likely mate-pair with long insert RF orientation)
 	3. PE: Paired-end (short insert, FR orientation)
 	4. SE: Single read (read has no mate)
-
-Let (a1,b1) be the positions of the first and last base of the adapter (if found) in read one, and (a2,b2) be these positions for read two and L is the read length (same for both reads).  We set (a1,a2)=(L,L) and (a1,a2)=(L,L) when an adapter is not detected in respective reads.  We used R1[i,j] and R2[i,j] to refer to the substring from position i to j in reads 1 and two respectively.  We also set the variable MINLEN (default=25), which is the minimum read length (post-trimming) to report.
-
-The virtual library construction logic is then:
-
-```
-    IF(a1>L AND a2>L) {
-    	  Reverse-complement the pair and place in UNKNOWN
-    }
-    ELSE {
-	IF(a1>MINLEN AND a1<L AND a2<MINLEN)
-	     Place R1[0,a1] in SE. Discard R2.
-
-	ELSE IF(a2>MINLEN AND a2<L AND a1<MINLEN)
-	     Place R1[0,a1] in SE Discard R2.
-
-	ELSE IF( (a1<L AND a2<L) OR ( a1<L AND b1>(L-MINLEN) ) OR ( a1<L AND b1>(L-MINLEN) ) ) 
-	     Place reverse complement of the pair (R1[0,L],R2[0,L]) in MP
-
-	ELSE IF b1<L AND a2==L {
-	     IF a1<MINLEN
-		Place (R1[b1,L],R2[0,L]) in PE
-	     ELSE IF (L-b1)>a1 {
-	     	Place (R1[b1,L],R2[0,L]) in PE
-		Place R1[0,a1] in SE
-	     }
-	     ELSE {
-		IF (L-b1)>MINLEN
-		   Place R1[b1,L] in SE
-
-	     	Place reverse complement of the pair (R1[0,b1],R2[0,L]) in MP
-             }
-	}		   	
-	ELSE IF (b2<L AND a1==L) {
-	     IF a2<MINLEN
-		Place (R1[0,L],R2[b2,L]) in PE
-	     ELSE IF (L-b2)>a2 {
-	     	Place (R1[0,L],R2[b2,L]) in PE
-		Place R2[0,a2] in SE
-	     }
-	     ELSE {
-		IF (L-b2)>MINLEN
-		   Place R2[b2,L] in SE
-
-	     	Place reverse complement of the pair (R1[0,L],R2[0,b2]) in MP
-             }	     
-	}
-```
-
-##Adapter detection rules
-We now describe the routine used to detect the presence/location of the adapter sequence in each read. There are two user defined variables involved, the similarity measure SIM (default=0.85) and the minimum string length to consider MINOVERLAP (default=12).  The similarity measure allows for adapter sequence with some amount of error to be matched, the MINOVERLAP variable allows us to consider partial adapter sequence on the very  beginning or end of a read.  The user also defines the distance(s1,s2) function as the Hamming (default) or Levenshtein distance between strings s1 and s2.  We describe the process for the DNA sequence R which could be either of the members of a read pair.
-
-```
-
-function detectAdapter(R,ADAPTER,SIM,distance) {
-    start = MINOVERLAP - len(ADAPTER)
-    stop = L - MINOVERLAP
-    min_distance = len(ADAPTER)
-    min_index = L
-    distance_threshold = ceiling( (1 - SIM) * comparison_length)
-
-    FOR i IN [start...stop] {
-    	read_start = max(0,i)
-	read_end = min(L,i)
-	IF(i<0) {
-		adapter_start = -i
-        } ELSE {
-                adapter_start = 0
-        }
-	IF( i>(L-len(ADAPTER) ) {
-		adapter_end =  (L-i)
-        } ELSE {
-		adapter_end = len(adapter1)
-        }		
-    	comparison_length = adapter_end - adapter_start	
-	d = distance(R[read_start:read_end],ADAPTER[adapter_start:adapter_end])
-	IF( d<min_distance AND d<distance_threshold) {
-	   min_distance = d
-	   min_index = i
-        }
-
-   RETURN(min_index)
-}
-
-ADAPTER1 = CTGTCTCTTATACACATCT
-ADAPTER2 = AGATGTGTATAAGAGACAG
-
-a1 = detectAdapter(R1,ADAPTER1,SIM,distance)
-IF(a1<L) {
-   a1 = detectAdapter(R1,ADAPTER2,SIM,distance)
-   IF(a1<L) {
-      a1-=len(ADAPTER1)
-   }
-}
-b1=a1+len(ADAPTER1)+len(ADAPTER1)
-
-a2 = detectAdapter(R1,ADAPTER1,SIM,distance)
-IF(a2<L) {
-   a2 = detectAdapter(R1,ADAPTER2,SIM,distance)
-   IF(a2<L) {
-      a2-=len(ADAPTER1)
-   }
-}
-b2=a2+len(ADAPTER1)+len(ADAPTER1)
-
-```
-We search for both the adapter sequences separately for two reasons;
-
-   1. Occasionally only one of the adapters is present
-   2. One of the adapters may have indel errors, but both having indel errors is unlikely. Hence we can use cheaper Hamming distance calculations for comparisons if we check them separately
 
 ##References:
 
