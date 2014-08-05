@@ -5,7 +5,7 @@ All rights reserved.
 
 See LICENSE.txt for details (BSD License).
 
-####Dependences
+####Dependencies
 
 BOOST
 
@@ -17,9 +17,15 @@ cd NxTrim
 make
 ```
 ####Usage
-
+Trim the data:
 ```
 ./nxtrim -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz -O sample --rc
+```
+Assemble with velvet:
+```
+velveth output_dir 55 -short -fastq.gz sample.se.fastq.gz -shortPaired2 -fastq.gz sample.pe.fastq.gz -shortPaired3 -fastq.gz sample.mp.fastq.gz -shortPaired4 -fastq.gz sample.unknown.fastq.gz}
+
+velvetg output_dir -exp_cov auto -cov_cutoff auto -shortMatePaired4 yes
 ```
 
 ####References:
