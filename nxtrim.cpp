@@ -23,7 +23,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
     ("rc", "reverse-complement mate-pair reads (use this if your reads are RF orientation)")
     ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
     ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where edit_distance  <=  ceiling( (1-similarity) * string_length )  ")
-    ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap the be considered for matching")
+    ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
     ("minlength", po::value<int>()->default_value(21), "The minimum read length to output (smaller reads will be filtered)");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
