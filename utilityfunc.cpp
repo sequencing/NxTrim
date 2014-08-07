@@ -1,20 +1,3 @@
-// -*- mode: c++; indent-tabs-mode: nil; -*-
-//
-// Rumovsky
-// Copyright (c) 2013-2014 Illumina, Inc.
-//
-// This software is provided under the terms and conditions of the
-// Illumina Open Source Software License 1.
-//
-// You should have received a copy of the Illumina Open Source
-// Software License 1 along with this program. If not, see
-// <https://github.com/sequencing/licenses/>
-//
-
-///
-/// \author Jared O'Connell
-///
-
 #include "utilityfunc.h"
 
 int argmax(vector<double> & x) {
@@ -96,7 +79,8 @@ ofile::ofile() {
 }
 
 ofile::ofile(string filename , bool binary) {
-	open(filename, binary);
+  open(filename, binary);
+
 }
 
 ofile::~ofile() {
@@ -114,18 +98,22 @@ bool ofile::open(string filename, bool binary) {
   }
   file = filename;
   string ext = filename.substr(filename.length()-2);
-	if (ext == "gz") {
-		fd.open(file.c_str(), ios::out | ios::binary);
-		push(io::gzip_compressor());
-	} 
-	else if (binary) {
-		fd.open(file.c_str(), ios::out | ios::binary);
-	} else  {
-		fd.open(file.c_str());
-	}
-	if (fd.fail()) return false;
-	push(fd);
-	return true;
+  if (ext == "gz") {
+    fd.open(file.c_str(), ios::out | ios::binary);
+    push(io::gzip_compressor());
+  } 
+  else if (binary) {
+    fd.open(file.c_str(), ios::out | ios::binary);
+  } else  {
+    fd.open(file.c_str());
+  }
+  push(fd);
+  if(! fd.good() ||fd.fail() || !fd.is_open() ) {
+    cerr <<"ERROR: could not open " << filename << " for writing\nExiting";
+    exit(1);
+  }
+
+  return true;
 }
 
 void ofile::writeString(string & str) {

@@ -1,20 +1,3 @@
-// -*- mode: c++; indent-tabs-mode: nil; -*-
-//
-// Rumovsky
-// Copyright (c) 2013-2014 Illumina, Inc.
-//
-// This software is provided under the terms and conditions of the
-// Illumina Open Source Software License 1.
-//
-// You should have received a copy of the Illumina Open Source
-// Software License 1 along with this program. If not, see
-// <https://github.com/sequencing/licenses/>
-//
-
-///
-/// \author Jared O'Connell
-///
-
 #pragma once
 #include "utilityfunc.h"
 
@@ -26,6 +9,8 @@ class fqread {
   int l;
   bool filtered;//if filtered is true, it failed QC
   string h,s,l3,q;
+  int notN();
+  int notN(int a,int b);//tells us how many non-missing bases are in this window.
   fqread window(int a,int b);
   fqread window(int a);
   fqread rc();

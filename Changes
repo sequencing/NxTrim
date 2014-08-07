@@ -1,0 +1,7 @@
+version  2014.08.06
+*added handling for fastq's with varying read lengths
+*better I/O checking
+*better handling of reads with large numbers of Ns
+
+version  2014.08.05
+*initial commit

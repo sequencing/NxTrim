@@ -34,11 +34,15 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       exit(1);
     }
 
-    if (!vm.count("r1") || !vm.count("r2") ||  !vm.count("output-prefix")) {
+    if (!vm.count("r1") || !vm.count("r2")) {
       cout << "Missing input!"<<endl;
       exit(1);
     }
 
+    if(!vm.count("output-prefix")) {
+      cout << "Missing output file!"<<endl;
+      exit(1);     
+    }
     return(0);
 }
 
@@ -76,7 +80,15 @@ int main(int argc,char **argv) {
   matePair m;
   m.set_preserve_mp(opt.count("preserve_mp"));
   int n_mp=0,n_pe=0,n_se=0,n_unk=0;
+  bool trim_warn=true;
   while(infile.getPair(p)) {
+    if( p.r1.l!=p.r2.l && trim_warn) {
+      cerr << "WARNING: reads with differing lengths. Has this data already been trimmed?"<<endl;
+      trim_warn=false;
+      // p.r1.print();
+      // p.r2.print();
+      // exit(1);
+    }
     if(!p.r1.filtered && !p.r2.filtered) {
       nweird+=m.build(p,minoverlap,similarity,minlen,joinreads,hamming);
       if(rc) {

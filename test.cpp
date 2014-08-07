@@ -1,8 +1,3 @@
-
-///
-/// \author Jared O'Connell
-///
-
 #include "utilityfunc.h"
 #include "matepair.h"
 
@@ -59,20 +54,13 @@ int main(int argc,char **argv) {
     a = findAdapter(r,minoverlap,sim,true);
     cout << a << " " << passed(a==30) << endl<< endl;
 
-    /*
-    levenshtein lev1(adapter1);
-    cout << lev1.distance(adapter1,0,sim) <<  endl;
-    cout << lev1.distance(adapter2,0,sim) <<  endl;
-    r = adapter1+junk;
-    cout << lev1.distance(r ,0,sim) <<  endl;
-    */
-    adapter1 = "CTGTCTCTTATACACATCT";
-    string s1 = "AAAAT";
-    int i=2;
-    cout << s1  << " " << hamming(s1,adapter1,s1.size()-i,0,i,0) << endl;
+    readPair p;
+    pairReader infile("example/r1.fastq.gz","example/r2.fastq.gz");
+    while(infile.getPair(p)) {
+      cout << p.r1.notN(0,p.r1.l) << " "  << p.r2.notN(0,p.r2.l) << endl;
+      cout << p.r1.notN(p.r1.l-100,p.r1.l) << " "  << p.r2.notN(p.r2.l-100,p.r2.l) << endl;
+      cout << p.r1.notN(0,10) << " "  << p.r2.notN(0,10) << endl;
+    }
 
-    s1 = "AAACT";
-    i=2;
-    cout << s1  << " " << hamming(s1,adapter1,s1.size()-i,0,i,0) << endl;
-    return(0);
+    return(0);   
 }

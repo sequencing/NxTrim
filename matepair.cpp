@@ -1,19 +1,3 @@
-// -*- mode: c++; indent-tabs-mode: nil; -*-
-//
-// Rumovsky
-// Copyright (c) 2013-2014 Illumina, Inc.
-//
-// This software is provided under the terms and conditions of the
-// Illumina Open Source Software License 1.
-//
-// You should have received a copy of the Illumina Open Source
-// Software License 1 along with this program. If not, see
-// <https://github.com/sequencing/licenses/>
-//
-
-///
-/// \author Jared O'Connell
-///
 #include "matepair.h"
              
 //string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
@@ -54,7 +38,9 @@ int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
 
 //only handles substitution errors in adapter (faster)
 int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
-  assert(s2.size()<s1.size());
+  //  assert(s2.size()<s1.size());
+  if(s2.size()>=s1.size())
+    return(s1.size());
   int mini=s1.size(),mind=s2.size();
   assert((int)s1.size()>=minoverlap);
   
@@ -166,7 +152,7 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
     mp.r1=r1.window(0,a);
     mp.r2=r2;
   }
-  else if( (r1.l-b)>a && !preserve_mp) {
+  else if(r1.notN(b,r1.l)>r1.notN(0,a) && !preserve_mp) {
     pe.r1=tmp1;
     pe.r2=r2;
     if(a>=minlen)
@@ -302,7 +288,9 @@ bool matePair::trimExternal(readPair& rp) {
 
 //aligns s2 to s1 with sim>=sim. returns s1.size() if no alignment found
 unsigned int matePair::ham_align(string & s1,string & s2) {
-  assert(s1.size()>s2.size());
+  //  assert(s1.size()>s2.size());
+  if(s1.size()<s2.size())
+    return(s1.size());
 
   int L1 = s1.size();
   int L2 = s2.size();

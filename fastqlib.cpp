@@ -1,21 +1,3 @@
-// -*- mode: c++; indent-tabs-mode: nil; -*-
-//
-// Rumovsky
-// Copyright (c) 2013-2014 Illumina, Inc.
-//
-// This software is provided under the terms and conditions of the
-// Illumina Open Source Software License 1.
-//
-// You should have received a copy of the Illumina Open Source
-// Software License 1 along with this program. If not, see
-// <https://github.com/sequencing/licenses/>
-//
-
-///
-/// \author Jared O'Connell
-///
-
-
 #include "fastqlib.h"
 using namespace std;
 
@@ -100,6 +82,20 @@ fqread fqread::rc() {
   return(ret);
 }
 
+int fqread::notN() {
+  return(notN(0,l));
+}
+
+int fqread::notN(int a,int b) {
+  assert(b>a);
+  int count = 0;
+  for(int i=a;i<b;i++)
+    if(s[i]=='N')
+      count++;
+  return(b - a - count);
+}
+
+
 fqread fqread::window(int a,int b) {
   return(fqread(h,s.substr(a,b-a),l3,q.substr(a,b-a)));
 }
@@ -118,8 +114,11 @@ int fqread::print() {
 
 
 fastqReader::fastqReader(string fname){
-  infile.open(fname);
-  if(!infile) {
+  if(! infile.open(fname) ) {
+    cerr << "Problem reading "<<fname<<endl;
+    exit(1);
+  }
+  if(!infile.good()) {
     cerr << "Problem reading "<<fname<<endl;
     exit(1);
   }
@@ -127,10 +126,6 @@ fastqReader::fastqReader(string fname){
 
 fastqWriter::fastqWriter(string fname){
   outfile.open(fname);
-  if(!outfile) {
-    cerr << "Problem writing to "<<fname<<endl;
-    exit(1);
-  }
 }
 
 int fastqWriter::write(fqread & read) {
