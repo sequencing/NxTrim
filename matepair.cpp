@@ -13,29 +13,6 @@ string adapterj = adapter1+adapter2;
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
 
-int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
-
-  int d = 0;
-  //  cout << s1 << endl << s2 << " " << offset1 << " " << offset2 << " " << L << endl;
-  for(int i=0;i<L;i++) {
-    int j1=offset1+i;
-    int j2=offset2+i;
-
-    if(j1>=0 && j1<(int)s1.size() && j2>=0 && j2<(int)s2.size() ) {
-      if(s1[j1]!=s2[j2])
-	d++;
-      if(d>maxd) {
-	d=s1.length();
-	break;
-      }
-    }
-    //    cout << j1 << " " <<j2<<" "<<s1[j1] << " " << s2[j2] << " " << d <<endl;
-  }
-  //  cout << "d = "<<d << endl;
-  return(d);
-}
-
-
 //only handles substitution errors in adapter (faster)
 int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
   //  assert(s2.size()<s1.size());
@@ -99,6 +76,28 @@ int findAdapter(string & s,int minoverlap,float similarity,bool use_hamming){
   return(L1);
 }
 
+
+int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
+  int d = 0;
+  //  cout << s1 << endl << s2 << " " << offset1 << " " << offset2 << " " << L << endl;
+  for(int i=0;i<L;i++) {
+    int j1=offset1+i;
+    int j2=offset2+i;
+
+    if(j1>=0 && j1<(int)s1.size() && j2>=0 && j2<(int)s2.size() ) {
+      if(s1[j1]!=s2[j2])
+	d++;
+      if(d>maxd) {
+	d=s1.length();
+	break;
+      }
+    }
+    //    cout << j1 << " " <<j2<<" "<<s1[j1] << " " << s2[j2] << " " << d <<endl;
+  }
+  //  cout << "d = "<<d << endl;
+  return(d);
+}
+
 int overlap(string & s1,string & s2,int minoverlap,float similarity) {
   int mini=0,mind,minL;
   if(s1.size()<s2.size())  minL=s1.size();
@@ -110,12 +109,13 @@ int overlap(string & s1,string & s2,int minoverlap,float similarity) {
 
   for(int i=minoverlap;i<minL;i++) {
     int maxdist = ceil( (1. - similarity) * i );
-    int d = hamming(s1,s2,0,0,i,maxdist);
+    int d = hamming(s1,s2,s1.size()-i,0,i,maxdist);
     if(d<mind && d<=maxdist) {
       mind=d;
       mini=i;
     }
   }
+  if(DEBUG>1) cout << "mind = "<<mind<<"\tmini = "<<mini<<endl;
   return(mini);  
 }
 
@@ -134,23 +134,34 @@ int matePair::joinReads(fqread & r1,fqread & r2,fqread & output) {
     output.l3=r1.l3;
     output.s = r1.s + r2.s.substr(w);
     output.q = r1.q + r2.q.substr(w);      
+    int offset = r1.s.size() - w;
+    for(int i=0;i<w;i++) {//takes highest quality base.
+      int j = offset+w;
+      if( (uint8_t)r1.q[j] <  (uint8_t)r2.q[i] ) {
+	output.s[j] = r2.s[i];
+	output.q[j] = r2.q[i];
+      }
+    }
     output.l = output.s.size();
     return(1);
   }  
 }
 
 int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
-
+  if(DEBUG>0)  cout << "Resolving overhang"<<endl;
   fqread tmp1 = r1.window(b,r1.l);
   fqread tmp2 = r1.window(b,r1.l).rc();
-
-  if(a<minlen) {//preceeding dna is too small.
+  if(DEBUG>1) {
+    cout << r2.s <<endl;;
+    cout << tmp2.s << endl;
+  }
+  if(a<minlen) {//preceeding dna is too small. 
+    //TODO:could possibly merge for a big read here
     pe.r1 = tmp1;
     pe.r2 = r2;
   }
-  else if(joinReads(tmp2,r2,se)) {
+  else if(joinReads(r2,tmp2,mp.r2)) {
     mp.r1=r1.window(0,a);
-    mp.r2=r2;
   }
   else if(r1.notN(b,r1.l)>r1.notN(0,a) && !preserve_mp) {
     pe.r1=tmp1;

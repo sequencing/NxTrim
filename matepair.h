@@ -1,6 +1,7 @@
 #pragma once
 #include "fastqlib.h"
 #include "math.h"
+#include "stdint.h"
 
 int hamming(string & s1,string & s2,int offset1,int offset2,int L,int maxd);
 int overlap(string & s1,string & s2,int minoverlap,float similarity);
