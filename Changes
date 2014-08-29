@@ -1,3 +1,7 @@
+2014.08.29
+*fixed a bug in --preserve-mp
+*tweaks to --joinreads (now performing better on 2x251 libraries)
+
 2014.08.28
 *fixed a bug in --joinreads
 

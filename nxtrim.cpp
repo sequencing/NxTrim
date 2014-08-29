@@ -18,7 +18,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
     ("r1,1", po::value<string>(), "read 1 in fastq format (gzip allowed)")
     ("r2,2", po::value<string>(), "read 2 in fastq format (gzip allowed)")
     ("output-prefix,O", po::value<string>(), "output prefix")
-    ("joinreads", "merge paired-end reads that have overlap (default: no joining)")
+    ("joinreads", "try to merge overhangs from R2 with R1 (default: no joining)")
     //    ("levenshtein", "use Levenshtein distance instead of Hamming distance (slower but possibly more accurate)")
     ("rc", "reverse-complement mate-pair reads (use this if your reads are RF orientation)")
     ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
@@ -52,6 +52,7 @@ int main(int argc,char **argv) {
   checkParameters(argc,argv,opt);
 
   bool joinreads = opt.count("joinreads");
+  bool preserve_mp = opt.count("preserve-mp");
   int minoverlap= opt["minoverlap"].as<int>();
   float similarity=opt["similarity"].as<float>();
   int minlen=opt["minlength"].as<int>();
@@ -65,6 +66,8 @@ int main(int argc,char **argv) {
   cout << "Output: " << prefix <<".*.fastq.gz"<<endl;
   if(hamming)  cout << "Using Hamming distance"<<endl;
   else cout << "Using Levenshtein distance\n"<<endl;
+  if(preserve_mp) cout<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
+  if(joinreads) cout<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
 
   pairReader infile(r1,r2);
   fastqWriter mp_out(prefix+".mp.fastq.gz");
@@ -78,7 +81,6 @@ int main(int argc,char **argv) {
   int nread=0;  
   int nweird=0;
   matePair m;
-  m.set_preserve_mp(opt.count("preserve_mp"));
   int n_mp=0,n_pe=0,n_se=0,n_unk=0;
   bool trim_warn=true;
   while(infile.getPair(p)) {
@@ -90,7 +92,8 @@ int main(int argc,char **argv) {
       // exit(1);
     }
     if(!p.r1.filtered && !p.r2.filtered) {
-      nweird+=m.build(p,minoverlap,similarity,minlen,joinreads,hamming);
+      nweird+=m.build(p,minoverlap,similarity,minlen,joinreads,hamming,preserve_mp);
+  
       if(rc) {
 	n_pe+=pe_out.write(m.pe);
 	m.mp.rc();

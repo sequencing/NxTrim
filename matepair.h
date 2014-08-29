@@ -22,14 +22,13 @@ class levenshtein {
 
 class matePair {
   public:
-  matePair(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming);
+  matePair(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming,bool preserve_mp);
   matePair();
-  int build(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming);
+  int build(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming,bool preserve_mp);
   int clear();
   int trimUnknown();
   bool trimExternal(readPair & rp);
   int joinReads(fqread & r1,fqread & r2,fqread & output);
-  int  set_preserve_mp(bool);
   bool joinreads,use_hamming,preserve_mp;
   fqread se;
   readPair mp,pe,unknown;

@@ -184,14 +184,9 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
 matePair::matePair() {
 }
 
-matePair::matePair(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh)
+matePair::matePair(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp)
 {
-  build(readpair,minovl,sim,ml,jr,uh);
-}
-
-int matePair::set_preserve_mp(bool p) {
-  preserve_mp=p;
-  return(0);
+  build(readpair,minovl,sim,ml,jr,uh,pmp);
 }
 
 int matePair::clear() {
@@ -260,8 +255,11 @@ bool matePair::trimExternal(readPair& rp) {
   else
     b = (int)tmp;
 
+  if(DEBUG>1) {
+    if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r1.l)) 
+      cout << "EXTERNAL ADAPTER DETECTED " << a << " " << b << endl;
+  }
   //  OK NO ADAPTERS FOUND, LETS TRY LOOKING FOR AN OVERLAP -> PAIRED END FRAG
-
   if(!(a>0 && a<rp.r1.l)&&!(b>0 && b<rp.r1.l)) {
     fqread rc2 = rp.r2.rc();
     
@@ -278,7 +276,7 @@ bool matePair::trimExternal(readPair& rp) {
     if(mini<rp.r1.l) {
       a=rp.r1.l-mini;
       b=rp.r2.l-mini;
-      //      cout <<"OVERLAP FOUND "<< a <<" " << b<<endl;
+      if(DEBUG>1)      cout <<"OVERLAP FOUND "<< a <<" " << b<<endl;
     }
   }
 
@@ -327,10 +325,10 @@ unsigned int matePair::ham_align(string & s1,string & s2) {
 }
 
 //int matePair::build(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming) {
-int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh) {
+int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp) {
   //  assert(readpair.r1.l==readpair.r2.l);
   clear();
-  preserve_mp=false;
+  preserve_mp=pmp;
   minoverlap=minovl;
   similarity=sim;
   minlen=ml;
@@ -371,12 +369,14 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 
   if(DEBUG>1)  cout << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
   if(a1==L1 && a2==L2) {//no adapter found
-    if(!joinReads(readpair.r1,rc2,se)) {
-      if(!trimExternal(readpair)) {
-        unknown=readPair(readpair.r1,readpair.r2);
-        trimUnknown();
-      }
+    
+    // we could potentially run if(!joinReads(readpair.r1,rc2,se)) but this tends to give a lot of false joins
+    // possible improvement: check for r1/r2 overlap in absence of adapter -> overlap implies PE
+    if(!trimExternal(readpair)) {
+      unknown=readPair(readpair.r1,readpair.r2);
+      trimUnknown();
     }
+    
   }
   else {//adapter found.
     bool both_have_adapter = a1<L1 && a2<L2;
