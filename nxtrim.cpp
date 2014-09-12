@@ -30,11 +30,12 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
   }
-  catch(po::unknown_option e)
-    {
-      cout << e.what() << std::endl;
-      exit(1);
-    }
+  catch(po::unknown_option e){
+    cerr << e.what() << std::endl;
+    cerr << "Type nxtrim -h for help."<<endl;
+    exit(1);
+  }
+  
   if (vm.count("help") || argc==1) {
     cout << desc << "\n";
     exit(1);
