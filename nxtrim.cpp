@@ -13,37 +13,43 @@ string percent(int num,int den) {
 
 int checkParameters(int argc,char **argv,po::variables_map & vm) {
   po::options_description desc("Allowed options");
-  desc.add_options()
-    ("help", "produce help message")
-    ("r1,1", po::value<string>(), "read 1 in fastq format (gzip allowed)")
-    ("r2,2", po::value<string>(), "read 2 in fastq format (gzip allowed)")
-    ("output-prefix,O", po::value<string>(), "output prefix")
-    ("joinreads", "try to merge overhangs from R2 with R1 (default: no joining)")
-    //    ("levenshtein", "use Levenshtein distance instead of Hamming distance (slower but possibly more accurate)")
-    ("rc", "reverse-complement mate-pair reads (use this if your reads are RF orientation)")
-    ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
-    ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where edit_distance  <=  ceiling( (1-similarity) * string_length )  ")
-    ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
-    ("minlength", po::value<int>()->default_value(21), "The minimum read length to output (smaller reads will be filtered)");
-
+  try{
+    desc.add_options()
+      ("help,h", "produce help message")
+      ("r1,1", po::value<string>(), "read 1 in fastq format (gzip allowed)")
+      ("r2,2", po::value<string>(), "read 2 in fastq format (gzip allowed)")
+      ("output-prefix,O", po::value<string>(), "output prefix")
+      ("joinreads", "try to merge overhangs from R2 with R1 (default: no joining)")
+      //    ("levenshtein", "use Levenshtein distance instead of Hamming distance (slower but possibly more accurate)")
+      ("rc", "reverse-complement mate-pair reads (use this if your reads are RF orientation)")
+      ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
+      ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where edit_distance  <=  ceiling( (1-similarity) * string_length )  ")
+      ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
+      ("minlength", po::value<int>()->default_value(21), "The minimum read length to output (smaller reads will be filtered)");
+    
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
-
-    if (vm.count("help") || argc==1) {
-      cout << desc << "\n";
+  }
+  catch(po::unknown_option e)
+    {
+      cout << e.what() << std::endl;
       exit(1);
     }
+  if (vm.count("help") || argc==1) {
+    cout << desc << "\n";
+    exit(1);
+  }
 
-    if (!vm.count("r1") || !vm.count("r2")) {
-      cout << "Missing input!"<<endl;
-      exit(1);
-    }
+  if (!vm.count("r1") || !vm.count("r2")) {
+    cout << "Missing input!"<<endl;
+    exit(1);
+  }
 
-    if(!vm.count("output-prefix")) {
-      cout << "Missing output file!"<<endl;
-      exit(1);     
-    }
-    return(0);
+  if(!vm.count("output-prefix")) {
+    cout << "Missing output file!"<<endl;
+    exit(1);     
+  }
+  return(0);
 }
 
 int main(int argc,char **argv) {
