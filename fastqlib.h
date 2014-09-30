@@ -11,6 +11,8 @@ class fqread {
   string h,s,l3,q;
   int notN();
   int notN(int a,int b);//tells us how many non-missing bases are in this window.
+  fqread mask(int a,int b);//N masks the region a,b
+  fqread mask();
   fqread window(int a,int b);
   fqread window(int a);
   fqread rc();
@@ -42,7 +44,9 @@ class fastqReader {
 
 class fastqWriter {
  public:
+  fastqWriter();
   fastqWriter(string fname);
+  int open(string fname);
   int write(fqread & read);
   int write(readPair & read);
  private:

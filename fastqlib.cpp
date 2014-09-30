@@ -90,11 +90,25 @@ int fqread::notN(int a,int b) {
   assert(b>a);
   int count = 0;
   for(int i=a;i<b;i++)
-    if(s[i]=='N')
+    if(s[i]=='N' || ((unsigned int)q[i])<((unsigned int)'%'))
       count++;
   return(b - a - count);
 }
 
+fqread fqread::mask() { //N masks the entire read
+  return(mask(0,l));
+}
+
+fqread fqread::mask(int a,int b) { //N masks the region a,b
+  assert(a>=0&&b<=l);
+  string new_s = s;
+  string new_q = q;
+  for(int i=a;i<b;i++) {
+    new_s[i]='N';
+    new_q[i]='#';
+  }
+  return(fqread(h,new_s,l3,new_q));
+}
 
 fqread fqread::window(int a,int b) {
   return(fqread(h,s.substr(a,b-a),l3,q.substr(a,b-a)));
@@ -124,8 +138,15 @@ fastqReader::fastqReader(string fname){
   }
 }
 
+fastqWriter::fastqWriter(){
+}
+
 fastqWriter::fastqWriter(string fname){
-  outfile.open(fname);
+  open(fname);
+}
+
+int fastqWriter::open(string fname){
+  return(  outfile.open(fname) );
 }
 
 int fastqWriter::write(fqread & read) {

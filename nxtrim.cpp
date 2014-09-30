@@ -23,9 +23,10 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       //    ("levenshtein", "use Levenshtein distance instead of Hamming distance (slower but possibly more accurate)")
       ("rc", "reverse-complement mate-pair reads (use this if your reads are RF orientation)")
       ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
+      ("justmp", "creates a mp only library (reads with adapter at the start with be completely N masked)")
       ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where edit_distance  <=  ceiling( (1-similarity) * string_length )  ")
       ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
-      ("minlength", po::value<int>()->default_value(21), "The minimum read length to output (smaller reads will be filtered)");
+      ("minlength", po::value<int>()->default_value(25), "The minimum read length to output (smaller reads will be filtered)");
     
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
@@ -60,7 +61,8 @@ int main(int argc,char **argv) {
 
   bool joinreads = opt.count("joinreads");
   bool preserve_mp = opt.count("preserve-mp");
-  int minoverlap= opt["minoverlap"].as<int>();
+  bool justmp = opt.count("justmp");
+  int minoverlap= opt["minoverlap"].as<int>()-1;//+1 since we use < frequently
   float similarity=opt["similarity"].as<float>();
   int minlen=opt["minlength"].as<int>();
   string r1 = opt["r1"].as<string>();
@@ -76,46 +78,40 @@ int main(int argc,char **argv) {
   if(preserve_mp) cout<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
   if(joinreads) cout<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
 
-  pairReader infile(r1,r2);
-  fastqWriter mp_out(prefix+".mp.fastq.gz");
-  fastqWriter pe_out(prefix+".pe.fastq.gz");
-  fastqWriter se_out(prefix+".se.fastq.gz");
-  fastqWriter unknown_out(prefix+".unknown.fastq.gz");
+  if(preserve_mp&&justmp) {
+    cerr << "ERROR: the --preserve_mp and --justmp flags are incompatible!" << endl;
+    return(1);
+  }
+  if(justmp)
+    preserve_mp=true;
 
+  pairReader infile(r1,r2);
+
+
+  int nodata=0;
   readPair p;
   pair<int,int> pos;
-  int npass=0;
-  int nread=0;  
-  int nweird=0;
   matePair m;
-  int n_mp=0,n_pe=0,n_se=0,n_unk=0;
+  int nweird=0,npass=0,nread=0;
   bool trim_warn=true;
+  nxtrimWriter out(prefix,justmp);
   while(infile.getPair(p)) {
     if( p.r1.l!=p.r2.l && trim_warn) {
       cerr << "WARNING: reads with differing lengths. Has this data already been trimmed?"<<endl;
       trim_warn=false;
-      // p.r1.print();
-      // p.r2.print();
-      // exit(1);
     }
     if(!p.r1.filtered && !p.r2.filtered) {
-      nweird+=m.build(p,minoverlap,similarity,minlen,joinreads,hamming,preserve_mp);
-  
+      bool weird=m.build(p,minoverlap,similarity,minlen,joinreads,hamming,preserve_mp,justmp);
+      nweird+=weird;
+      nodata+=(!weird && (m.mp.r1.l==0&&m.mp.r2.l==0)&&  (m.pe.r1.l==0&&m.pe.r2.l==0) &&  (m.unknown.r1.l==0&&m.unknown.r2.l==0) && m.se.l==0);
       if(rc) {
-	n_pe+=pe_out.write(m.pe);
 	m.mp.rc();
-	n_mp+=mp_out.write(m.mp);
 	m.unknown.rc();
-	n_unk+=unknown_out.write(m.unknown);
       }
       else{
 	m.pe.rc();
-	n_pe+=pe_out.write(m.pe);
-	n_mp+=mp_out.write(m.mp);
-	n_unk+=unknown_out.write(m.unknown);
       }
-
-      n_se+=se_out.write(m.se);
+      out.write(m);
       npass++;
     }
     nread++;
@@ -123,10 +119,13 @@ int main(int argc,char **argv) {
       cout <<  "READ PAIR "<<nread<<endl;
   }
   cout << percent(npass,nread) << "reads passed chastity/purity filters."<<endl;
-  cout << percent(nweird,npass) << "reads had TWO copies of adapter (filtered)."<<endl<<endl;
-  cout << percent(n_mp,npass) << "read pairs had MP orientation"<<endl;
-  cout << percent(n_pe,npass) << "read pairs had PE orientation"<<endl;
-  cout << percent(n_se,npass) << "single end reads were generated"<<endl;
-  cout << percent(n_unk,npass) << "had unknown orientation"<<endl;
+  cout << percent(nweird,npass) << "reads had TWO copies of adapter (filtered)."<<endl;
+  npass-=nweird;
+  cout << percent(nodata,npass) << "read pairs were ignored because template length appeared less than read length"<<endl<<endl;
+  npass-=nodata;
+  cout << percent(out.n_mp,npass) << "read pairs had MP orientation"<<endl;
+  cout << percent(out.n_pe,npass) << "read pairs had PE orientation"<<endl;
+  cout << percent(out.n_unk,npass) << "had unknown orientation"<<endl;
+  cout << percent(out.n_se,npass) << "single end reads were generated"<<endl;
   return(0);
 }
