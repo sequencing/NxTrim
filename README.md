@@ -46,10 +46,10 @@ Note we concatenate the unknown/mp libraries for SPAdes.  This command is suitab
 
 The default behaviour expects raw fastq files from a Nextera Mate-Pair library kit in Reverse-Forward orientation.  Based on the location of the Nextera adapter sequence (if detected), nxtrim produces four different "virtual libraries":
 
-*mp read pairs that are large insert-size mate-pairs
-*pe read pairs that are short insert-sze paired-end reads
-*se single reads 
-*unknown a library of read-pairs that are mostly large-insert mate-pair, but possibly contain a small proportion of paired end contaminants
+* mp read pairs that are large insert-size mate-pairs
+* pe read pairs that are short insert-sze paired-end reads
+* se single reads 
+* unknown a library of read-pairs that are mostly large-insert mate-pair, but possibly contain a small proportion of paired end contaminants
 
 The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse orientation, this reverse-complementing can be disabled via the --norc flag.
 
