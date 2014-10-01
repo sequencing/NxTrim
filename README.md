@@ -19,9 +19,15 @@ make
 ```
 
 You will also need to point the BOOST_ROOT environment variable at your boost installation eg.
+
 ``
 export BOOST_ROOT=/your/boost/installation
 ``
+if boost is installed globally then
+``
+export BOOST_ROOT=/usr/lib/
+``
+should work
 
 ####Usage
 Trim the data:
