@@ -1,3 +1,4 @@
+#include "version.h"
 #include "fastqlib.h"
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
@@ -13,7 +14,7 @@ string percent(int num,int den) {
 int checkParameters(int argc,char **argv,po::variables_map & vm) {
   po::options_description desc("Allowed options");
   desc.add_options()
-    ("help", "produce help message")
+    ("help,h", "produce help message")
     ("r1,1", po::value<string>(), "read 1 in fastq format (gzip allowed)")
     ("r2,2", po::value<string>(), "read 2 in fastq format (gzip allowed)")
     ("output-prefix,O", po::value<string>(), "output prefix")
@@ -36,7 +37,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
 }
 
 int main(int argc,char **argv) {
-
+  cout << "\nmergeReads "<<VERSION<<"\nSimple utility for creating an interleaved fastq file from two separate R1/R2 files."<<endl<<endl;
   po::variables_map opt;
   checkParameters(argc,argv,opt);
 

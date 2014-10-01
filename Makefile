@@ -1,13 +1,12 @@
 CC = g++
 
 ifndef BOOST_ROOT
-    $(error BOOST_ROOT is undefined)
+    $(error BOOST_ROOT is undefined.  Point BOOST_ROOT at your boost installation ie. BOOST_ROOT/lib and BOOST_ROOT/include should exist)
 endif
 
 LFLAGS = -L$(BOOST_ROOT)/lib -lz -lboost_iostreams  -lboost_program_options
 CFLAGS = -O3  -I$(BOOST_ROOT)/include
 #CFLAGS = -I -g  -I$(BOOST_ROOT)/include
-
 
 all: mergeReads nxtrim test
 test: test.cpp fastqlib.o utilityfunc.o matepair.o

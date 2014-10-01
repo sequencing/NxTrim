@@ -496,22 +496,18 @@ nxtrimWriter::nxtrimWriter(string prefix,bool jmp) {
   n_unk=0;
   justmp = jmp;
   mp_out.open(prefix+".mp.fastq.gz");
+  unknown_out.open(prefix+".unknown.fastq.gz");  
   if(!justmp) {
     pe_out.open(prefix+".pe.fastq.gz");
     se_out.open(prefix+".se.fastq.gz");
-    unknown_out.open(prefix+".unknown.fastq.gz");  
   }
 }
 
 int nxtrimWriter::write(matePair m) {
-  if(justmp) {
-    n_mp+=mp_out.write(m.mp);
-    n_unk+=mp_out.write(m.unknown);  
-  }
-  else {
-    n_mp+=mp_out.write(m.mp);
+  n_mp+=mp_out.write(m.mp);
+  n_unk+=unknown_out.write(m.unknown);  
+  if(!justmp) {
     n_pe+=pe_out.write(m.pe);
-    n_unk+=unknown_out.write(m.unknown);  
     n_se+=se_out.write(m.se);  
   }
 }

@@ -1,3 +1,4 @@
+#include "version.h"
 #include "matepair.h"
 #include "fastqlib.h"
 #include <boost/program_options.hpp>
@@ -12,6 +13,8 @@ string percent(int num,int den) {
 }
 
 int checkParameters(int argc,char **argv,po::variables_map & vm) {
+    cout << "\nNxTrim "<<VERSION<<endl<<endl;
+
   po::options_description desc("Allowed options");
   try{
     desc.add_options()
@@ -21,10 +24,10 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       ("output-prefix,O", po::value<string>(), "output prefix")
       ("joinreads", "try to merge overhangs from R2 with R1 (default: no joining)")
       //    ("levenshtein", "use Levenshtein distance instead of Hamming distance (slower but possibly more accurate)")
-      ("rc", "reverse-complement mate-pair reads (use this if your reads are RF orientation)")
+      ("norc", "do NOT reverse-complement mate-pair reads (use this if your inout reads are already in FR orientation)")
       ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
-      ("justmp", "creates a mp only library (reads with adapter at the start with be completely N masked)")
-      ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where edit_distance  <=  ceiling( (1-similarity) * string_length )  ")
+      ("justmp", "just creates a the mp/unknown libraries (reads with adapter at the start with be completely N masked)")
+      ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )  ")
       ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
       ("minlength", po::value<int>()->default_value(25), "The minimum read length to output (smaller reads will be filtered)");
     
@@ -68,13 +71,12 @@ int main(int argc,char **argv) {
   string r1 = opt["r1"].as<string>();
   string r2 = opt["r2"].as<string>();
   string prefix = opt["output-prefix"].as<string>();
-  //  bool hamming = !opt.count("levenshtein");
   bool hamming = true;
-  bool rc = opt.count("rc");
+  bool rc = !opt.count("norc");
   cout << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
   cout << "Output: " << prefix <<".*.fastq.gz"<<endl;
-  if(hamming)  cout << "Using Hamming distance"<<endl;
-  else cout << "Using Levenshtein distance\n"<<endl;
+
+
   if(preserve_mp) cout<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
   if(joinreads) cout<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
 
