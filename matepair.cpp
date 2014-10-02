@@ -458,7 +458,6 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	  mp=readPair(readpair.r1.mask(),readpair.r2.window(0,a2));
 	}
 	else{
-
 	  pe.r1 = readpair.r1.window(b1,b1+a2);  
 	  pe.r2 = readpair.r2.window(0,a2);    
 	}
@@ -479,11 +478,17 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     } 
     else if(b1<L1 && a2==L2) {
       resolve_overhang(readpair.r1,readpair.r2,a1,b1);
-    if(DEBUG>1) cout << "CASE G"<<endl;
+      if(DEBUG>1) cout << "CASE G"<<endl;
     } 
     else if(b2<L2 && a1==L1) {
       resolve_overhang(readpair.r2,readpair.r1,a2,b2);
-    if(DEBUG>1) cout << "CASE H"<<endl;
+      fqread swap1 = pe.r1;
+      pe.r1 = pe.r2;
+      pe.r2 = swap1;
+      fqread swap2 = mp.r1;
+      mp.r1 = mp.r2;
+      mp.r2 = swap2;
+      if(DEBUG>1) cout << "CASE H"<<endl;
     }    
   }
   return(0);
@@ -511,79 +516,3 @@ int nxtrimWriter::write(matePair m) {
     n_se+=se_out.write(m.se);  
   }
 }
-
-//LEVENSHTEIN DISTANCE CODE - REMOVED THIS
-/*
-
-  levenshtein lev1(adapter1);
-  levenshtein lev2(adapter2);
-
-  levenshtein::levenshtein(string s1) {
-  L1 = s1.size();  
-  this->s1 = s1;
-  column = new unsigned int[L1+1];
-  }
-
-  int levenshtein::distance(string & s2,int offset,int maxdist,int indel_penalty) {
-  assert(s2.size()>=s1.size());
-  if(offset<0) 
-  int L1 = s1.size()+offset;
-  else if(offset>(int)(s2.size()-s1.size()))
-  int L1 = s2.size()-offset;
-  else
-  int L1 = s1.size();
-
-  int L2=L1;
-
-  assert(L1<=s1.size() && L2<=s2.size());
-  int offset1 = offset<0 ? -offset : 0;
-  offset = offset<0 ? 0:offset;
-
-  for(int j = 1; j <= L1; j++)
-  column[j] = j;
-  for(int i = 1; i <= L2; i++) {
-  column[0] = i;
-  //    cout << column[0] << " ";
-  lastdiag=i-1;
-  for(int j=1; j <= L1; j++) {
-  //      cout << column[j] << " ";      
-  olddiag = column[j];
-  column[j] = MIN3(column[j] + 1, column[j-1] + 1, lastdiag + (s1[offset1+j-1] == s2[offset+i-1] ? 0 : 1));
-  lastdiag = olddiag;
-  }
-  if(i>maxdist && column[i]>maxdist) {
-  column[L1]=L1;
-  break;
-  }
-  //    cout << endl;
-  }
-  return(column[L1]);
-  }
-
-
-  //allows for indel errors in adapter (slower)
-  int partial_match(string & s1,levenshtein & lev,int minoverlap,int maxdist) {
-  assert(lev.s1.size()<s1.size());
-  int mini=-1,mind=lev.s1.size();
-  assert((int)s1.size()>=minoverlap);
-  
-  int start = -(lev.s1.size()-minoverlap);
-  int stop = s1.size() - minoverlap;
-  for(int i=start;i<stop;i++) {
-  int d;
-  if(i<0 || i>(int)(s1.size()-lev.s1.size())) d = lev.distance(s1,i,maxdist/2);
-  else d = lev.distance(s1,i,maxdist);
-  //    cout << i << " " << d << endl;
-  if(d<mind) {
-  mini=i;
-  mind=d;
-  }
-  }
-
-  if(mind<maxdist)
-  return(mini);
-  else
-  return(s1.size());
-  }
-
-*/
