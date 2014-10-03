@@ -6,7 +6,7 @@ endif
 
 LFLAGS = -L$(BOOST_ROOT)/lib -lz -lboost_iostreams  -lboost_program_options
 CFLAGS = -O3  -I$(BOOST_ROOT)/include
-#CFLAGS = -I -g  -I$(BOOST_ROOT)/include
+#CFLAGS = -g -I$(BOOST_ROOT)/include
 
 all: mergeReads nxtrim test
 test: test.cpp fastqlib.o utilityfunc.o matepair.o
