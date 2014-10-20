@@ -1,15 +1,16 @@
 #include "matepair.h"
 
-
 //nextera mp adapters
 string adapter1 = "CTGTCTCTTATACACATCT";
 string adapter2 = "AGATGTGTATAAGAGACAG";
 string adapterj = adapter1+adapter2;
-//start adapters
-string r1_external_adapter = "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC";
-string r2_external_adapter = "ACACTCTTTCCCTACACGACGCTCTTCCGATC";
-                
-#define DEBUG 0
+//EXTERNAL adapters
+// string r1_external_adapter = "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC";
+// string r2_external_adapter = "ACACTCTTTCCCTACACGACGCTCTTCCGATC";                
+string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
+string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
+
+#define DEBUG 5
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
@@ -242,14 +243,14 @@ bool matePair::trimExternal(readPair& rp) {
   bool found = false;
   int a,b;
 
-  unsigned int tmp = rp.r1.s.find(r2_external_adapter);//PERFECT MATCH?
+  unsigned int tmp = rp.r1.s.find(r1_external_adapter);//PERFECT MATCH?
   if(tmp>=rp.r1.s.size()) //PARTIAL MATCH?
-    a = partial_match(rp.r1.s,r2_external_adapter,minoverlap,similarity);
+    a = partial_match(rp.r1.s,r1_external_adapter,minoverlap,similarity);
   else a = (int)tmp;
     
   tmp = rp.r2.s.find(r2_external_adapter);//PERFECT MATCH?
   if(tmp>=rp.r1.s.size()) //PARTIAL MATCH?
-    b = partial_match(rp.r2.s,r1_external_adapter,minoverlap,similarity);
+    b = partial_match(rp.r2.s,r2_external_adapter,minoverlap,similarity);
   else
     b = (int)tmp;
 
@@ -267,6 +268,7 @@ bool matePair::trimExternal(readPair& rp) {
       exit(1);
     }
   }
+
   //  OK NO ADAPTERS FOUND, LETS TRY LOOKING FOR AN OVERLAP -> PAIRED END FRAG
   if(!(a>0 && a<rp.r1.l)&&!(b>0 && b<rp.r1.l)) {
     fqread rc2 = rp.r2.rc();
@@ -413,10 +415,10 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
   if(a1==L1 && a2==L2) {//no adapter found
     // we could potentially run if(!joinReads(readpair.r1,rc2,se)) but this tends to give a lot of false joins
     // possible improvement: check for r1/r2 overlap in absence of adapter -> overlap implies PE
-    //    if(!trimExternal(readpair)) {
+    if(!trimExternal(readpair)) {
       unknown=readPair(readpair.r1,readpair.r2);
       trimUnknown();
-      //    }    
+    }    
     if(DEBUG>1) cout << "CASE A"<<endl;
   }
   else {//adapter found.

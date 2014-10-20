@@ -1,3 +1,12 @@
+2014.10.17
+*added some code to trim _external_ adapters from unknown libraries (should be very rare)
+*added git hash to the version number
+
+2014.10.15
+*v0.2.0 results for paper resubmission
+*a number of tweaks/fixes to adapter trimming logic to improve accuracy
+*added a --justmp flag so only mp libraries are produced
+
 2014.08.29
 *fixed a bug in --preserve-mp
 *tweaks to --joinreads (now performing better on 2x251 libraries)
