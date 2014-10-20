@@ -25,7 +25,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       ("output-prefix,O", po::value<string>(), "output prefix")
       ("joinreads", "try to merge overhangs from R2 with R1 (default: no joining)")
       //    ("levenshtein", "use Levenshtein distance instead of Hamming distance (slower but possibly more accurate)")
-      ("norc", "do NOT reverse-complement mate-pair reads (use this if your inout reads are already in FR orientation)")
+      ("norc", "do NOT reverse-complement mate-pair reads (use this if your reads are already in FR orientation)")
       ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
       ("justmp", "just creates a the mp/unknown libraries (reads with adapter at the start with be completely N masked)")
       ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )  ")
