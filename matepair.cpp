@@ -10,7 +10,7 @@ string adapterj = adapter1+adapter2;
 string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
-#define DEBUG 5
+#define DEBUG 0
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
