@@ -11,8 +11,9 @@ CFLAGS = -O3  -I$(BOOST_ROOT)/include
 all: mergeReads nxtrim test
 test: test.cpp fastqlib.o utilityfunc.o matepair.o
 	$(CC) $(CFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o test   $(LFLAGS) 
-nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o 
-	git log -1 --format="#define HASH \"%h\"" > githash.h
+githash.h: 
+	git log -1 --format="#define HASH \"%h\"" > githash.h	
+nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o 	
 	$(CC) $(CFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o -o nxtrim  $(LFLAGS)
 mergeReads: mergeReads.cpp fastqlib.o utilityfunc.o fastqlib.o 
 	$(CC) $(CFLAGS)  mergeReads.cpp fastqlib.o utilityfunc.o -o mergeReads   $(LFLAGS)
