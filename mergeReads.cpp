@@ -38,7 +38,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
 }
 
 int main(int argc,char **argv) {
-  cout << "\nmergeReads "<<VERSION<<"-"<<HASH<<"\nSimple utility for creating an interleaved fastq file from two separate R1/R2 files."<<endl<<endl;
+  cout << "\nmergeReads "<<VERSION<<" "<<HASH<<"\nSimple utility for creating an interleaved fastq file from two separate R1/R2 files."<<endl<<endl;
   po::variables_map opt;
   checkParameters(argc,argv,opt);
 

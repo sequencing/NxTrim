@@ -14,7 +14,7 @@ string percent(int num,int den) {
 }
 
 int checkParameters(int argc,char **argv,po::variables_map & vm) {
-    cout << "\nNxTrim "<<VERSION<<"-"<<HASH<<endl<<endl;
+    cout << "\nNxTrim "<<VERSION<<" "<<HASH<<endl<<endl;
 
   po::options_description desc("Allowed options");
   try{
