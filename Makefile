@@ -13,9 +13,9 @@ test: test.cpp fastqlib.o utilityfunc.o matepair.o
 	$(CC) $(CFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o test   $(LFLAGS) 
 githash.h: 
 	git log -1 --format="#define HASH \"%h\"" > githash.h	
-nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o 	
+nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o githash.h
 	$(CC) $(CFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o -o nxtrim  $(LFLAGS)
-mergeReads: mergeReads.cpp fastqlib.o utilityfunc.o fastqlib.o 
+mergeReads: mergeReads.cpp fastqlib.o utilityfunc.o fastqlib.o githash.h
 	$(CC) $(CFLAGS)  mergeReads.cpp fastqlib.o utilityfunc.o -o mergeReads   $(LFLAGS)
 matepair.o: matepair.cpp matepair.h fastqlib.h
 	$(CC) $(CFLAGS) -c matepair.cpp
