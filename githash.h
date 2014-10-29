@@ -1,3 +1,1 @@
-#define HASH ""
-
-
+#define HASH "c47acfa"

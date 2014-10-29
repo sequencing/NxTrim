@@ -265,7 +265,6 @@ bool matePair::trimExternal(readPair& rp) {
       }
       rp.r1.print();
       rp.r2.print();      
-      exit(1);
     }
   }
 
@@ -372,6 +371,10 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
   
   int L1 = readpair.r1.l;
   int L2 = readpair.r2.l;
+  if(L1<minlen||L2<minlen) {
+    cout << "readlength < minlenght"<<endl;
+    return(0);
+  }
 
   int a1 = findAdapter(readpair.r1.s, minoverlap, similarity,use_hamming);
   int a2 = findAdapter(readpair.r2.s, minoverlap, similarity,use_hamming);
@@ -388,7 +391,12 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 
   int b1 = a1+adapterj.size();
   int b2 = a2+adapterj.size();
-  if(DEBUG>1)  cout << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+  if(DEBUG>1) {
+    cout << "L1 ="<<L1<<endl;
+    cout << "L2 ="<<L2<<endl;
+
+    cout << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+  }
 
 
   if(a1==L1&&b2<(L2-minoverlap)) {//try to overlang the r2 overhang to r1 -> finds adapter on r1
@@ -404,11 +412,10 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
   }
   if(DEBUG>1)  cout << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
   int minoverlap2 = 1; //final attempt to find unidfentifed adapters
-  if(a1<L1&&a2==L2)//we know R2 has adapter. try check R1 for adapter with more liberal thresholds
-    a2 = checkRight(readpair.r2.s,adapter1, L1-minoverlap, minoverlap2, similarity);
-  if(a2<L1&&a1==L1)//viec-versa
-    a1 = checkRight(readpair.r1.s,adapter1, L2-minoverlap, minoverlap2, similarity);
-
+  if(a1<L1&&a2==L2)//we know R1 has adapter. try check R2 for adapter with more liberal thresholds
+    a2 = checkRight(readpair.r2.s,adapter1, L2-minoverlap, minoverlap2, similarity);
+  if(a2<L2&&a1==L1)//vice-versa
+    a1 = checkRight(readpair.r1.s,adapter1, L1-minoverlap, minoverlap2, similarity);
 
   if(DEBUG>1)  cout << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
 
@@ -443,7 +450,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
       if(DEBUG>1) cout << "CASE C"<<endl;
     }
     else if(a1>=(L1-minoverlap) && a2<minlen) {//obvious PE
-      if(a1>=minlen) {
+      if(a1>=minlen && (L2-b2)>=minlen) {
 	if(justmp) {
 	  mp=readPair(readpair.r1.window(0,a1),readpair.r2.mask()) ;
 	}
@@ -455,7 +462,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
       if(DEBUG>1) cout << "CASE D"<<endl;
     } 
     else if(a2>=(L2-minoverlap) && a1<minlen) {//obvious PE
-      if(a2>=minlen) {
+      if(a2>=minlen && (L1-b1)>=minlen) {
         if(justmp){
 	  mp=readPair(readpair.r1.mask(),readpair.r2.window(0,a2));
 	}

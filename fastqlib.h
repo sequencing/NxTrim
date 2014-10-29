@@ -7,7 +7,7 @@ class fqread {
   fqread(int L);
   fqread(string header,string dna,string line3,string qual);
   int l;
-  bool filtered;//if filtered is true, it failed QC
+  bool filtered,description;//if filtered is true, it failed QC
   string h,s,l3,q;
   int notN();
   int notN(int a,int b);//tells us how many non-missing bases are in this window.
@@ -39,6 +39,7 @@ class fastqReader {
 
  private:
   ifile infile;
+  bool warned;
 };
 
 

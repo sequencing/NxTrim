@@ -2,6 +2,7 @@
 using namespace std;
 
 fqread::fqread(string header,string dna,string line3,string qual){
+  description=true;
   h=header;
   s=dna;
   l3=line3;
@@ -12,11 +13,17 @@ fqread::fqread(string header,string dna,string line3,string qual){
   string tmp;
   iss >> tmp;
   iss >> tmp;
-  if(tmp[2]=='N')
+  if(!iss) {
+    //    cerr << "WARNING: no description in fastq.  Assuming chastity/purity passed." << endl;
     filtered=false;
-  else
-    filtered=true;
-
+    description=false;
+  }
+  else{
+    if(tmp[2]=='N')
+      filtered=false;
+    else
+      filtered=true;
+  }
   assert(dna.size()==qual.size());
 }
 
@@ -128,6 +135,7 @@ int fqread::print() {
 
 
 fastqReader::fastqReader(string fname){
+  warned=false;
   if(! infile.open(fname) ) {
     cerr << "Problem reading "<<fname<<endl;
     exit(1);
@@ -181,8 +189,12 @@ fqread fastqReader::next() {
   getline(infile,s);
   getline(infile,l3);
   getline(infile,q);
-
-  return(fqread(h,s,l3,q));
+  fqread r(h,s,l3,q);
+  if(!warned&&!r.description)  {
+    cerr << "WARNING: no description in fastq.  Assuming chastity/purity passed." << endl;
+    warned=true;
+  }    
+  return(r);
 }
 
 pairReader::pairReader(string fname1,string fname2) {

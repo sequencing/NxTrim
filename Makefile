@@ -28,4 +28,3 @@ clean:
 	rm nxtrim
 	rm test
 	rm mergeReads
-
