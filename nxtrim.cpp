@@ -28,9 +28,10 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       ("norc", "do NOT reverse-complement mate-pair reads (use this if your reads are already in FR orientation)")
       ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
       ("justmp", "just creates a the mp/unknown libraries (reads with adapter at the start with be completely N masked)")
+      ("separate", "output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved.")
       ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )  ")
       ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
-      ("minlength", po::value<int>()->default_value(21), "The minimum read length to output (smaller reads will be filtered)");
+      ("minlength", po::value<int>()->default_value(25), "The minimum read length to output (smaller reads will be filtered)");
     
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
@@ -90,15 +91,16 @@ int main(int argc,char **argv) {
 
   pairReader infile(r1,r2);
 
-
   int nodata=0;
   readPair p;
   pair<int,int> pos;
   matePair m;
   int nweird=0,npass=0,nread=0;
   bool trim_warn=true;
-  nxtrimWriter out(prefix,justmp);
+  nxtrimWriter out(prefix,justmp,opt.count("separate"));
+  int se_only = 0;
   while(infile.getPair(p)) {
+
     if( p.r1.l!=p.r2.l && trim_warn) {
       cerr << "WARNING: reads with differing lengths. Has this data already been trimmed?"<<endl;
       trim_warn=false;
@@ -106,7 +108,10 @@ int main(int argc,char **argv) {
     if(!p.r1.filtered && !p.r2.filtered) {
       bool weird=m.build(p,minoverlap,similarity,minlen,joinreads,hamming,preserve_mp,justmp);
       nweird+=weird;
-      nodata+=(!weird && (m.mp.r1.l==0&&m.mp.r2.l==0)&&  (m.pe.r1.l==0&&m.pe.r2.l==0) &&  (m.unknown.r1.l==0&&m.unknown.r2.l==0) && m.se.l==0);
+      if(!weird) {
+	nodata+=( (m.mp.r1.l==0||m.mp.r2.l==0) && (m.pe.r1.l==0||m.pe.r2.l==0) && (m.unknown.r1.l==0||m.unknown.r2.l==0) && m.se.l==0);
+	se_only += ( (m.mp.r1.l==0||m.mp.r2.l==0) && (m.pe.r1.l==0||m.pe.r2.l==0) && (m.unknown.r1.l==0||m.unknown.r2.l==0) ) && m.se.l>0;
+      }
       if(rc) {
 	m.mp.rc();
 	m.unknown.rc();
@@ -120,15 +125,19 @@ int main(int argc,char **argv) {
     nread++;
     if(nread%10000==0)
       cout <<  "READ PAIR "<<nread<<endl;
+
   }
+  cout << "\nTrimming summary:"<<endl;
   cout << percent(npass,nread) << "reads passed chastity/purity filters."<<endl;
   cout << percent(nweird,npass) << "reads had TWO copies of adapter (filtered)."<<endl;
   npass-=nweird;
-  cout << percent(nodata,npass) << "read pairs were ignored because template length appeared less than read length"<<endl<<endl;
+  cout << percent(nodata,npass) << "read pairs were ignored because template length appeared less than read length"<<endl;
   npass-=nodata;
+  cout << npass << " remaining reads were trimmed"<<endl<<endl;
   cout << percent(out.n_mp,npass) << "read pairs had MP orientation"<<endl;
   cout << percent(out.n_pe,npass) << "read pairs had PE orientation"<<endl;
-  cout << percent(out.n_unk,npass) << "had unknown orientation"<<endl;
-  cout << percent(out.n_se,npass) << "single end reads were generated"<<endl;
+  cout << percent(out.n_unk,npass) << "read pairs had unknown orientation"<<endl;
+  cout << percent(se_only,npass) << "were single end reads"<<endl<<endl;
+  cout << percent(out.n_se - se_only,npass) << "extra single end reads were generated from overhangs"<<endl;
   return(0);
 }

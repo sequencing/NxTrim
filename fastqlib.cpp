@@ -14,7 +14,6 @@ fqread::fqread(string header,string dna,string line3,string qual){
   iss >> tmp;
   iss >> tmp;
   if(!iss) {
-    //    cerr << "WARNING: no description in fastq.  Assuming chastity/purity passed." << endl;
     filtered=false;
     description=false;
   }
@@ -190,8 +189,8 @@ fqread fastqReader::next() {
   getline(infile,l3);
   getline(infile,q);
   fqread r(h,s,l3,q);
-  if(!warned&&!r.description)  {
-    cerr << "WARNING: no description in fastq.  Assuming chastity/purity passed." << endl;
+  if(!warned&&!r.description&&infile)  {
+    cerr << "WARNING: no description found in read header.  Assuming read passed passed chastity/purity filters." << endl;
     warned=true;
   }    
   return(r);
@@ -220,4 +219,41 @@ bool pairReader::getPair(readPair & p) {
   } else {
     return false;
   }
+}
+
+pairWriter::pairWriter(){
+}
+
+pairWriter::pairWriter(string fname) {
+  open(fname);
+}
+
+int pairWriter::open(string fname) {
+  outfile.open(fname);
+  separate=false;
+}
+
+pairWriter::pairWriter(string fname1,string fname2) {
+  open(fname1,fname2);
+}
+
+int pairWriter::open(string fname1,string fname2) {
+  outfile1.open(fname1);
+  outfile2.open(fname2);
+  separate=true;
+}
+
+int pairWriter::write(readPair & p) {
+  if(p.r1.l>0 && p.r2.l>0) {
+    if(separate) {
+      outfile1.write(p.r1);
+      outfile2.write(p.r1);
+    }
+    else {
+      outfile.write(p);
+    }
+    return(1);
+  }
+  else
+    return(0);
 }

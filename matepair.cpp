@@ -503,16 +503,23 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
   return(0);
 }
 
-nxtrimWriter::nxtrimWriter(string prefix,bool jmp) {
+nxtrimWriter::nxtrimWriter(string prefix,bool jmp,bool separate) {
+
   n_mp=0;
   n_pe=0;
   n_se=0;
   n_unk=0;
   justmp = jmp;
-  mp_out.open(prefix+".mp.fastq.gz");
-  unknown_out.open(prefix+".unknown.fastq.gz");  
+
+  if(separate)     mp_out.open(prefix+"_R1.mp.fastq.gz", prefix+"_R2.mp.fastq.gz");
+  else     mp_out.open(prefix+".mp.fastq.gz");
+
+  if(separate)    unknown_out.open(prefix+"_R1.unknown.fastq.gz",prefix+"_R2.unknown.fastq.gz");
+  else unknown_out.open(prefix+".unknown.fastq.gz");  
+
   if(!justmp) {
-    pe_out.open(prefix+".pe.fastq.gz");
+    if(separate) pe_out.open(prefix+"_R1.pe.fastq.gz",prefix+"_R2.pe.fastq.gz");
+    else  pe_out.open(prefix+".pe.fastq.gz");
     se_out.open(prefix+".se.fastq.gz");
   }
 }
@@ -524,4 +531,5 @@ int nxtrimWriter::write(matePair m) {
     n_pe+=pe_out.write(m.pe);
     n_se+=se_out.write(m.se);  
   }
+  return(0);
 }

@@ -65,3 +65,20 @@ class pairReader {
   fastqReader *f1,*f2;
 };
 
+
+class pairWriter {
+ public:
+  pairWriter();
+
+  //interleaved
+  pairWriter(string fname);
+  int  open(string fname);
+  //separate files
+  pairWriter(string fname1,string fname2);
+  int  open(string fname1,string fname2);
+  int write(readPair & read);
+  bool separate;
+ private:
+  fastqWriter outfile;//interleaved
+  fastqWriter outfile1,outfile2;//separate files
+};
