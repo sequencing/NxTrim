@@ -247,7 +247,7 @@ int pairWriter::write(readPair & p) {
   if(p.r1.l>0 && p.r2.l>0) {
     if(separate) {
       outfile1.write(p.r1);
-      outfile2.write(p.r1);
+      outfile2.write(p.r2);
     }
     else {
       outfile.write(p);
