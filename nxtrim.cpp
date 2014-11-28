@@ -31,7 +31,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       ("separate", "output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved.")
       ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )  ")
       ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
-      ("minlength", po::value<int>()->default_value(25), "The minimum read length to output (smaller reads will be filtered)");
+      ("minlength", po::value<int>()->default_value(21), "The minimum read length to output (smaller reads will be filtered)");
     
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
