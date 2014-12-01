@@ -12,7 +12,7 @@ BOOST - we use Boost 1.55.0 but most recent versions are probably fine
 
 ####Installation
 ```
-git clone git@github.com:sequencing/NxTrim.git
+git clone https://github.com/sequencing/NxTrim.git
 cd NxTrim
 make
 ./nxtrim
