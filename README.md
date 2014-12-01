@@ -62,9 +62,11 @@ The default behaviour expects raw fastq files from a Nextera Mate-Pair library k
 
 The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse orientation, this reverse-complementing can be disabled via the --norc flag.
 
-If you wish to generate pure mate-pair libraries, you can use the --justmp flag.  This will only generate the unkown and mp libraries.  Reads with an adapter occurring < minlength bp before the start will be completely N masked.
+If you wish to generate pure mate-pair libraries, you can use the --justmp flag.  This will only generate the unknown and mp libraries.  Reads with an adapter occurring < minlength bp before the start will be completely N masked.
 
-If you wish to attempt to preserve mate-pair libraries whenever possible, the --preservmp flag may be useful.  This always keep the mate-pair library *unless* the reads generated would be <minlength, in which case it will generate a PE read.
+If you wish to preserve mate-pair libraries whenever possible, the --preservemp flag may be useful.  This will always keep the mate-pair library *unless* a read generated would be <minlength, in which case it will generate a PE.
+
+You can trade specificity/sensitivity of adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera adapter).  The defaults were well suited to bacteria in our testing.
 
 ####Example data:
 
