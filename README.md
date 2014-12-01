@@ -51,7 +51,7 @@ spades.py -k 21,33,55,77 -t 4  --pe1-s sample.se.fastq.gz --pe2-12 sample.pe.fas
 ```
 Note we concatenate the unknown/mp libraries for SPAdes.  This command is suitable for 2x151bp data, if you have 2x251bp then use `-k 21,33,55,77,127`.  
 
-####Details:
+####Output:
 
 The default behaviour expects raw fastq files from a Nextera Mate-Pair library kit in Reverse-Forward orientation.  Based on the location of the Nextera adapter sequence (if detected), nxtrim produces four different "virtual libraries":
 
@@ -59,6 +59,8 @@ The default behaviour expects raw fastq files from a Nextera Mate-Pair library k
 * pe: read pairs that are short insert-sze paired-end reads
 * se: single reads 
 * unknown: a library of read-pairs that are mostly large-insert mate-pair, but possibly contain a small proportion of paired end contaminants
+
+####Options:
 
 The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse orientation, this reverse-complementing can be disabled via the --norc flag.
 
