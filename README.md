@@ -27,7 +27,7 @@ export BOOST_ROOT=/your/boost/installation
 if boost is installed globally then
 
 ``
-export BOOST_ROOT=/usr/lib/
+export BOOST_ROOT=/usr/
 ``
 
 should work
