@@ -50,7 +50,7 @@ nxtrim -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz -O sample --justmp
 cat sample.mp.fastq.gz sample.unknown.fastq.gz > sample.allmp.fastq.gz
 spades.py -k 21,33,55,77 -t 4 --hqmp1-12 sample.allmp.fastq.gz -o output_dir
 ```
-Note we concatenate the unknown/mp libraries for SPAdes.  SPAdes versions>3.1.0 seem to dislike our virtual single/pe libraries hence we trim with the --justmp flag. This command is suitable for 2x151bp data, if you have 2x251bp then use `-k 21,33,55,77,127`.  
+Note we concatenate the unknown/mp libraries for SPAdes.  SPAdes versions>3.1.0 seem to dislike our virtual single/pe libraries hence we trim with the `--justmp` flag. This command is suitable for 2x151bp data, if you have 2x251bp then use `-k 21,33,55,77,127`.  
 
 ####Output:
 
