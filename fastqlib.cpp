@@ -231,6 +231,7 @@ pairWriter::pairWriter(string fname) {
 int pairWriter::open(string fname) {
   outfile.open(fname);
   separate=false;
+  return(0);
 }
 
 pairWriter::pairWriter(string fname1,string fname2) {
@@ -241,6 +242,7 @@ int pairWriter::open(string fname1,string fname2) {
   outfile1.open(fname1);
   outfile2.open(fname2);
   separate=true;
+  return(0);
 }
 
 int pairWriter::write(readPair & p) {

@@ -65,15 +65,17 @@ int findAdapter(string & s,int minoverlap,float similarity,bool use_hamming){
     return(perfect-L2);
   
   int a;
+  a = partial_match(s,adapter1,minoverlap,similarity);
   //  cout << "no exact matches, lets try partial matching"<<endl;
-  if(use_hamming) a = partial_match(s,adapter1,minoverlap,similarity);
+  //  if(use_hamming) a = partial_match(s,adapter1,minoverlap,similarity);
   //  else  a = partial_match(s,lev1,minoverlap,maxdist);
 
   if(a<(int)L1)
     return(a);
 
   //second half
-  if(use_hamming) a = partial_match(s,adapter2,minoverlap,similarity);
+  a = partial_match(s,adapter2,minoverlap,similarity);
+  //  if(use_hamming) a = partial_match(s,adapter2,minoverlap,similarity);
   //  else a = partial_match(s,lev2,minoverlap,maxdist);
 
   if(a<(int)L1)
