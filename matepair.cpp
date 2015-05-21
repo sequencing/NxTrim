@@ -25,21 +25,21 @@ int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
   
   int start = -(s2.size()-minoverlap);
   int stop = s1.size() - minoverlap;
-  //  cout << "Range: " << start << " " << stop << endl;
+  //  cerr << "Range: " << start << " " << stop << endl;
   for(int i=start;i<stop;i++) {
     float compare_length = s2.size();
     if( i<0) compare_length += i;
     if( (int)s2.size() > ((int)s1.size()-i)) compare_length = (float)(s1.size()-i);
     int maxdist = ceil ( (1.-similarity) * compare_length);
     int d = hamming(s1,s2,i,0,s2.size(),maxdist);
-    //    cout << i<<" "<<maxdist<<" "<<d<<endl;
+    //    cerr << i<<" "<<maxdist<<" "<<d<<endl;
 
     if(d<mind&&d<maxdist) {
       mini=i;
       mind=d;
       if(DEBUG>2) {
-	cout << compare_length << endl;
-	cout << mini << " " << mind << "<" << mind << endl;
+	cerr << compare_length << endl;
+	cerr << mini << " " << mind << "<" << mind << endl;
       }
     }
   }
@@ -51,7 +51,7 @@ int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
 int findAdapter(string & s,int minoverlap,float similarity,bool use_hamming){
   unsigned  int L1 = s.size();
   unsigned  int L2 = adapter1.size();
-  //  cout << L1 << " " << L2 << endl;
+  //  cerr << L1 << " " << L2 << endl;
   assert(use_hamming);
   unsigned  int perfect;
   //first half of adapter
@@ -66,7 +66,7 @@ int findAdapter(string & s,int minoverlap,float similarity,bool use_hamming){
   
   int a;
   a = partial_match(s,adapter1,minoverlap,similarity);
-  //  cout << "no exact matches, lets try partial matching"<<endl;
+  //  cerr << "no exact matches, lets try partial matching"<<endl;
   //  if(use_hamming) a = partial_match(s,adapter1,minoverlap,similarity);
   //  else  a = partial_match(s,lev1,minoverlap,maxdist);
 
@@ -88,7 +88,7 @@ int findAdapter(string & s,int minoverlap,float similarity,bool use_hamming){
 //returns min( hamming( s1[offset1,offset+L], s2[offset2,offset2+L] ) , maxd )
 int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
   int d = 0;
-  //  cout << s1 << endl << s2 << " " << offset1 << " " << offset2 << " " << L << endl;
+  //  cerr << s1 << endl << s2 << " " << offset1 << " " << offset2 << " " << L << endl;
   for(int i=0;i<L;i++) {
     int j1=offset1+i;
     int j2=offset2+i;
@@ -101,9 +101,9 @@ int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
 	break;
       }
     }
-    //    cout << j1 << " " <<j2<<" "<<s1[j1] << " " << s2[j2] << " " << d <<endl;
+    //    cerr << j1 << " " <<j2<<" "<<s1[j1] << " " << s2[j2] << " " << d <<endl;
   }
-  //  cout << "d = "<<d << endl;
+  //  cerr << "d = "<<d << endl;
   return(d);
 }
 
@@ -124,7 +124,7 @@ int overlap(string & s1,string & s2,int minoverlap,float similarity) {
       mini=i;
     }
   }
-  if(DEBUG>1) cout << "mind = "<<mind<<"\tmini = "<<mini<<endl;
+  if(DEBUG>1) cerr << "mind = "<<mind<<"\tmini = "<<mini<<endl;
   return(mini);  
 }
 
@@ -135,7 +135,7 @@ int matePair::joinReads(fqread & r1,fqread & r2,fqread & output) {
     return(0);
 
   int w = overlap(r1.s,r2.s,minoverlap,similarity);
-  if(DEBUG>0)  cout << "w = "<<w<<endl;
+  if(DEBUG>0)  cerr << "w = "<<w<<endl;
   if(w==0)
     return(0);
   else {
@@ -157,12 +157,12 @@ int matePair::joinReads(fqread & r1,fqread & r2,fqread & output) {
 }
 
 int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
-  if(DEBUG>0)  cout << "Resolving overhang"<<endl;
+  if(DEBUG>0)  cerr << "Resolving overhang"<<endl;
   fqread tmp1 = r1.window(b,r1.l);
   fqread tmp2 = r1.window(b,r1.l).rc();
   if(DEBUG>1) {
-    cout << r2.s <<endl;;
-    cout << tmp2.s << endl;
+    cerr << r2.s <<endl;;
+    cerr << tmp2.s << endl;
   }
   if(a<minlen) {//preceeding dna is too small. 
     //TODO:could possibly merge for a big read here
@@ -231,7 +231,7 @@ int matePair::trimUnknown() {
 
   if(DEBUG>0)
     if(a1>0||a2>0)
-      cout << "trimUnknown: " << a1 << " " << b1 << " " << a2 << " " << b2 << endl;
+      cerr << "trimUnknown: " << a1 << " " << b1 << " " << a2 << " " << b2 << endl;
 
   if(a1>0)
     unknown.r1 = unknown.r1.window(0,a1);
@@ -258,7 +258,7 @@ bool matePair::trimExternal(readPair& rp) {
 
   if(DEBUG>1) {
     if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r1.l)) {
-      cout << "EXTERNAL ADAPTER DETECTED " << a << " " << b << endl;
+      cerr << "EXTERNAL ADAPTER DETECTED " << a << " " << b << endl;
       if(a>0 && a<rp.r1.l) {
 	rp.r1.window(a,rp.r1.l).print();
       }
@@ -287,7 +287,7 @@ bool matePair::trimExternal(readPair& rp) {
     if(mini<rp.r1.l) {
       a=rp.r1.l-mini;
       b=rp.r2.l-mini;
-      if(DEBUG>1)      cout <<"OVERLAP FOUND "<< a <<" " << b<<endl;
+      if(DEBUG>1)      cerr <<"OVERLAP FOUND "<< a <<" " << b<<endl;
     }
   }
 
@@ -374,7 +374,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
   int L1 = readpair.r1.l;
   int L2 = readpair.r2.l;
   if(L1<minlen||L2<minlen) {
-    cout << "readlength < minlenght"<<endl;
+    cerr << "readlength < minlenght"<<endl;
     return(0);
   }
 
@@ -394,10 +394,10 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
   int b1 = a1+adapterj.size();
   int b2 = a2+adapterj.size();
   if(DEBUG>1) {
-    cout << "L1 ="<<L1<<endl;
-    cout << "L2 ="<<L2<<endl;
+    cerr << "L1 ="<<L1<<endl;
+    cerr << "L2 ="<<L2<<endl;
 
-    cout << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
   }
 
 
@@ -412,14 +412,14 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     a2 = ham_align(readpair.r2.s,overhang);
     b2 = a2+adapterj.size();
   }
-  if(DEBUG>1)  cout << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+  if(DEBUG>1)  cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
   int minoverlap2 = 1; //final attempt to find unidfentifed adapters
   if(a1<L1&&a2==L2)//we know R1 has adapter. try check R2 for adapter with more liberal thresholds
     a2 = checkRight(readpair.r2.s,adapter1, L2-minoverlap, minoverlap2, similarity);
   if(a2<L2&&a1==L1)//vice-versa
     a1 = checkRight(readpair.r1.s,adapter1, L1-minoverlap, minoverlap2, similarity);
 
-  if(DEBUG>1)  cout << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+  if(DEBUG>1)  cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
 
   if(a1==L1 && a2==L2) {//no adapter found
     // we could potentially run if(!joinReads(readpair.r1,rc2,se)) but this tends to give a lot of false joins
@@ -428,7 +428,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
       unknown=readPair(readpair.r1,readpair.r2);
       trimUnknown();
     }    
-    if(DEBUG>1) cout << "CASE A"<<endl;
+    if(DEBUG>1) cerr << "CASE A"<<endl;
   }
   else {//adapter found.
     bool both_have_adapter = a1<L1 && a2<L2;
@@ -442,14 +442,14 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	mp=readPair(readpair.r1.window(0,a1),readpair.r2.mask()) ;
       else
 	se = readpair.r1.window(0,a1); 
-      if(DEBUG>1) cout << "CASE B"<<endl;
+      if(DEBUG>1) cerr << "CASE B"<<endl;
     }
     else if(a2<(L2-minoverlap) && a1<minlen) {//r1 redundant
       if(justmp)
 	mp=readPair(readpair.r1.mask(),readpair.r2.window(0,a2));
       else
 	se = readpair.r2.window(0,a2);    
-      if(DEBUG>1) cout << "CASE C"<<endl;
+      if(DEBUG>1) cerr << "CASE C"<<endl;
     }
     else if(a1>=(L1-minoverlap) && a2<minlen) {//obvious PE
       if(a1>=minlen && (L2-b2)>=minlen) {
@@ -461,7 +461,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	  pe.r2 = readpair.r2.window(b2,b2+a1);
 	}        
       }
-      if(DEBUG>1) cout << "CASE D"<<endl;
+      if(DEBUG>1) cerr << "CASE D"<<endl;
     } 
     else if(a2>=(L2-minoverlap) && a1<minlen) {//obvious PE
       if(a2>=minlen && (L1-b1)>=minlen) {
@@ -473,13 +473,13 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	  pe.r2 = readpair.r2.window(0,a2);    
 	}
       }
-      if(DEBUG>1) cout << "CASE E"<<endl;
+      if(DEBUG>1) cerr << "CASE E"<<endl;
     } 
     else if(both_have_adapter||R1_has_adapter_at_end||R2_has_adapter_at_end) {
       //standard mp
       mp.r1=readpair.r1.window(0,a1);
       mp.r2=readpair.r2.window(0,a2);
-      if(DEBUG>1) cout << "CASE F"<<endl;
+      if(DEBUG>1) cerr << "CASE F"<<endl;
       /*
       if((L1-b1)>minlen && b1<=b2)
         se = readpair.r1.window(b1);
@@ -489,7 +489,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     } 
     else if(b1<L1 && a2==L2) {
       resolve_overhang(readpair.r1,readpair.r2,a1,b1);
-      if(DEBUG>1) cout << "CASE G"<<endl;
+      if(DEBUG>1) cerr << "CASE G"<<endl;
     } 
     else if(b2<L2 && a1==L1) {
       resolve_overhang(readpair.r2,readpair.r1,a2,b2);
@@ -499,14 +499,17 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
       fqread swap2 = mp.r1;
       mp.r1 = mp.r2;
       mp.r2 = swap2;
-      if(DEBUG>1) cout << "CASE H"<<endl;
+      if(DEBUG>1) cerr << "CASE H"<<endl;
     }    
   }
   return(0);
 }
 
 nxtrimWriter::nxtrimWriter(string prefix,bool jmp,bool separate) {
+  open(prefix,jmp,separate);
+}
 
+int nxtrimWriter::open(string prefix,bool jmp,bool separate) {
   n_mp=0;
   n_pe=0;
   n_se=0;
@@ -524,14 +527,43 @@ nxtrimWriter::nxtrimWriter(string prefix,bool jmp,bool separate) {
     else  pe_out.open(prefix+".pe.fastq.gz");
     se_out.open(prefix+".se.fastq.gz");
   }
+  print_to_stdout=false;
+  return(0);
+}
+
+nxtrimWriter::nxtrimWriter(bool jmp,bool separate) {
+  open(jmp,separate);
+}
+
+nxtrimWriter::nxtrimWriter() {}
+
+int nxtrimWriter::open(bool jmp,bool separate) {
+  n_mp=0;
+  n_pe=0;
+  n_se=0;
+  n_unk=0;
+  justmp = jmp;
+
+  print_to_stdout=true;
+  return(0);
 }
 
 int nxtrimWriter::write(matePair m) {
-  n_mp+=mp_out.write(m.mp);
-  n_unk+=unknown_out.write(m.unknown);  
-  if(!justmp) {
-    n_pe+=pe_out.write(m.pe);
-    n_se+=se_out.write(m.se);  
+  if(!print_to_stdout) {
+    n_mp+=mp_out.write(m.mp);
+    n_unk+=unknown_out.write(m.unknown);  
+    if(!justmp) {
+      n_pe+=pe_out.write(m.pe);
+      n_se+=se_out.write(m.se);  
+    }
+  }
+  else{
+    m.mp.print();
+    m.unknown.print();
+    if(!justmp) {
+      m.pe.print();
+      m.se.print();  
+    }
   }
   return(0);
 }

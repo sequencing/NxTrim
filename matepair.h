@@ -42,12 +42,18 @@ class matePair {
 class nxtrimWriter { 
 
  public:
+  nxtrimWriter();
   nxtrimWriter(string prefix,bool jmp,bool separate_read_files);
+  nxtrimWriter(bool jmp,bool separate);
+  int open(string prefix,bool jmp,bool separate_read_files);
+  int open(bool jmp,bool separate);
+
   int  write(matePair m);
   int weird,n_mp,n_unk,n_se,n_pe;//counts for each virtual library
   bool justmp;
 
  private:
+  bool print_to_stdout;
   pairWriter mp_out;
   pairWriter pe_out;
   pairWriter unknown_out;

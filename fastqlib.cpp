@@ -125,10 +125,12 @@ fqread fqread::window(int a) {
 }
 
 int fqread::print() {
-  cout << h << endl;
-  cout << s << endl;
-  cout <<l3 << endl;
-  cout << q << endl;
+  if(l>0) {
+    cout << h << endl;
+    cout << s << endl;
+    cout <<l3 << endl;
+    cout << q << endl;
+  }
   return(0);
 }
 
@@ -203,6 +205,11 @@ pairReader::pairReader(string fname1,string fname2) {
 
 readPair pairReader::next() {
   return( readPair(f1->next(),f2->next()));
+}
+
+int readPair::print() {
+  r1.print();
+  r2.print();
 }
 
 int readPair::set(fqread read1, fqread read2) {

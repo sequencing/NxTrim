@@ -14,7 +14,7 @@ string percent(int num,int den) {
 }
 
 int checkParameters(int argc,char **argv,po::variables_map & vm) {
-    cout << "\nNxTrim "<<VERSION<<" "<<HASH<<endl<<endl;
+    cerr << "\nNxTrim "<<VERSION<<" "<<HASH<<endl<<endl;
 
   po::options_description desc("Allowed options");
   try{
@@ -27,6 +27,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       //    ("levenshtein", "use Levenshtein distance instead of Hamming distance (slower but possibly more accurate)")
       ("norc", "do NOT reverse-complement mate-pair reads (use this if your reads are already in FR orientation)")
       ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
+      ("stdout", "print trimmed reads to stdout")
       ("justmp", "just creates a the mp/unknown libraries (reads with adapter at the start will be completely N masked)")
       ("separate", "output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved.")
       ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )  ")
@@ -43,17 +44,17 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
   }
   
   if (vm.count("help") || argc==1) {
-    cout << desc << "\n";
+    cerr << desc << "\n";
     exit(1);
   }
 
   if (!vm.count("r1") || !vm.count("r2")) {
-    cout << "Missing input!"<<endl;
+    cerr << "Missing input!"<<endl;
     exit(1);
   }
 
-  if(!vm.count("output-prefix")) {
-    cout << "Missing output file!"<<endl;
+  if(!vm.count("output-prefix") && !vm.count("stdout")) {
+    cerr << "Missing output file!"<<endl;
     exit(1);     
   }
   return(0);
@@ -72,15 +73,18 @@ int main(int argc,char **argv) {
   int minlen=opt["minlength"].as<int>();
   string r1 = opt["r1"].as<string>();
   string r2 = opt["r2"].as<string>();
-  string prefix = opt["output-prefix"].as<string>();
+  string prefix="";
+  if(opt.count("output-prefix"))
+    prefix = opt["output-prefix"].as<string>();
   bool hamming = true;
   bool rc = !opt.count("norc");
-  cout << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
-  cout << "Output: " << prefix <<".*.fastq.gz"<<endl;
+  cerr << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
 
+  if(opt.count("stdout"))  cerr << "Writing to stdout"<<endl;
+  else cerr << "Output: " << prefix <<".*.fastq.gz"<<endl;
 
-  if(preserve_mp) cout<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
-  if(joinreads) cout<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
+  if(preserve_mp) cerr<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
+  if(joinreads) cerr<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
 
   if(preserve_mp&&justmp) {
     cerr << "ERROR: the --preserve_mp and --justmp flags are incompatible!" << endl;
@@ -97,7 +101,13 @@ int main(int argc,char **argv) {
   matePair m;
   int nweird=0,npass=0,nread=0;
   bool trim_warn=true;
-  nxtrimWriter out(prefix,justmp,opt.count("separate"));
+
+  nxtrimWriter out;
+  if(opt.count("stdout")) 
+    out.open(justmp,opt.count("separate"));
+  else  
+    out.open(prefix,justmp,opt.count("separate"));
+
   int se_only = 0;
   while(infile.getPair(p)) {
 
@@ -124,20 +134,20 @@ int main(int argc,char **argv) {
     }
     nread++;
     if(nread%10000==0)
-      cout <<  "READ PAIR "<<nread<<endl;
+      cerr <<  "READ PAIR "<<nread<<endl;
 
   }
-  cout << "\nTrimming summary:"<<endl;
-  cout << percent(npass,nread) << "reads passed chastity/purity filters."<<endl;
-  cout << percent(nweird,npass) << "reads had TWO copies of adapter (filtered)."<<endl;
+  cerr << "\nTrimming summary:"<<endl;
+  cerr << percent(npass,nread) << "reads passed chastity/purity filters."<<endl;
+  cerr << percent(nweird,npass) << "reads had TWO copies of adapter (filtered)."<<endl;
   npass-=nweird;
-  cout << percent(nodata,npass) << "read pairs were ignored because template length appeared less than read length"<<endl;
+  cerr << percent(nodata,npass) << "read pairs were ignored because template length appeared less than read length"<<endl;
   npass-=nodata;
-  cout << npass << " remaining reads were trimmed"<<endl<<endl;
-  cout << percent(out.n_mp,npass) << "read pairs had MP orientation"<<endl;
-  cout << percent(out.n_pe,npass) << "read pairs had PE orientation"<<endl;
-  cout << percent(out.n_unk,npass) << "read pairs had unknown orientation"<<endl;
-  cout << percent(se_only,npass) << "were single end reads"<<endl<<endl;
-  cout << percent(out.n_se - se_only,npass) << "extra single end reads were generated from overhangs"<<endl;
+  cerr << npass << " remaining reads were trimmed"<<endl<<endl;
+  cerr << percent(out.n_mp,npass) << "read pairs had MP orientation"<<endl;
+  cerr << percent(out.n_pe,npass) << "read pairs had PE orientation"<<endl;
+  cerr << percent(out.n_unk,npass) << "read pairs had unknown orientation"<<endl;
+  cerr << percent(se_only,npass) << "were single end reads"<<endl<<endl;
+  cerr << percent(out.n_se - se_only,npass) << "extra single end reads were generated from overhangs"<<endl;
   return(0);
 }

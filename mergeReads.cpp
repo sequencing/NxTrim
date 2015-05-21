@@ -25,12 +25,12 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
     po::notify(vm);    
 
     if (vm.count("help") || argc==1) {
-      cout << desc << "\n";
+      cerr << desc << "\n";
       exit(1);
     }
 
     if (!vm.count("r1") || !vm.count("r2") ||  !vm.count("output-prefix")) {
-      cout << "Missing input!"<<endl;
+      cerr << "Missing input!"<<endl;
       exit(1);
     }
 
@@ -38,7 +38,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
 }
 
 int main(int argc,char **argv) {
-  cout << "\nmergeReads "<<VERSION<<" "<<HASH<<"\nSimple utility for creating an interleaved fastq file from two separate R1/R2 files."<<endl<<endl;
+  cerr << "\nmergeReads "<<VERSION<<" "<<HASH<<"\nSimple utility for creating an interleaved fastq file from two separate R1/R2 files."<<endl<<endl;
   po::variables_map opt;
   checkParameters(argc,argv,opt);
 
@@ -46,10 +46,10 @@ int main(int argc,char **argv) {
   string r2 = opt["r2"].as<string>();
   string prefix = opt["output-prefix"].as<string>();
   bool rc = opt.count("rc");
-  cout << "Merging:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
-  cout << "Output: " << prefix <<".fastq.gz"<<endl;
+  cerr << "Merging:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
+  cerr << "Output: " << prefix <<".fastq.gz"<<endl;
   if(rc)
-    cout << "Reads will be reverse-complemented."<<endl;
+    cerr << "Reads will be reverse-complemented."<<endl;
 
   pairReader infile(r1,r2);
   fastqWriter outfile(prefix+".fastq.gz");
@@ -69,8 +69,8 @@ int main(int argc,char **argv) {
     }
     nread++;
     if(nread%10000==0)
-      cout <<  "READ PAIR "<<nread<<endl;
+      cerr <<  "READ PAIR "<<nread<<endl;
   }
-  cout << percent(npass,nread) << "reads passed chastity/purity filters."<<endl;
+  cerr << percent(npass,nread) << "reads passed chastity/purity filters."<<endl;
   return(0);
 }
