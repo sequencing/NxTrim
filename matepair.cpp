@@ -558,6 +558,7 @@ int nxtrimWriter::write(matePair m) {
     }
   }
   else{
+    
     m.mp.print();
     m.unknown.print();
     if(!justmp) {

@@ -28,6 +28,7 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       ("norc", "do NOT reverse-complement mate-pair reads (use this if your reads are already in FR orientation)")
       ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
       ("stdout", "print trimmed reads to stdout")
+      ("ignorePF", "ignore chastity/purity filters in read headers")
       ("justmp", "just creates a the mp/unknown libraries (reads with adapter at the start will be completely N masked)")
       ("separate", "output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved.")
       ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )  ")
@@ -78,6 +79,7 @@ int main(int argc,char **argv) {
     prefix = opt["output-prefix"].as<string>();
   bool hamming = true;
   bool rc = !opt.count("norc");
+  bool ignorePF = opt.count("ignorePF");
   cerr << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
 
   if(opt.count("stdout"))  cerr << "Writing to stdout"<<endl;
@@ -111,11 +113,11 @@ int main(int argc,char **argv) {
   int se_only = 0;
   while(infile.getPair(p)) {
 
-    if( p.r1.l!=p.r2.l && trim_warn) {
+    if(p.r1.l!=p.r2.l && trim_warn) {
       cerr << "WARNING: reads with differing lengths. Has this data already been trimmed?"<<endl;
       trim_warn=false;
     }
-    if(!p.r1.filtered && !p.r2.filtered) {
+      if((!p.r1.filtered && !p.r2.filtered)||ignorePF) {
       bool weird=m.build(p,minoverlap,similarity,minlen,joinreads,hamming,preserve_mp,justmp);
       nweird+=weird;
       if(!weird) {

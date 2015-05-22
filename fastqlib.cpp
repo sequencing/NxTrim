@@ -18,10 +18,10 @@ fqread::fqread(string header,string dna,string line3,string qual){
     description=false;
   }
   else{
-    if(tmp[2]=='N')
-      filtered=false;
-    else
+    if(tmp.substr(1,3)==":Y:")
       filtered=true;
+    else
+      filtered=false;
   }
   assert(dna.size()==qual.size());
 }

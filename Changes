@@ -1,3 +1,7 @@
+2015.05.22
+*fixed a problem with header passing when reads were not in Illumina format (eg. ENA)
+*added --ignorePF flag
+
 2015.05.21
 *added --stdout flag
 *program output now prints to stderr rather than stdout
