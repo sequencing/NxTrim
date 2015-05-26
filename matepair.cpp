@@ -265,8 +265,8 @@ bool matePair::trimExternal(readPair& rp) {
       if(b>0 && b<rp.r1.l) {
 	rp.r2.window(b,rp.r2.l).print();
       }
-      rp.r1.print();
-      rp.r2.print();      
+      //      rp.r1.print();
+      //      rp.r2.print();      
     }
   }
 
@@ -294,14 +294,14 @@ bool matePair::trimExternal(readPair& rp) {
   if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r1.l)) {
     found = true;
     if(justmp) {
+      mp.r1 = rp.r1;      
+      mp.r2 = rp.r2;
       if(a<rp.r1.l)
 	mp.r1 = rp.r1.mask();
-      else
-	mp.r2 = rp.r2;
-      if(a<rp.r2.l)
+
+      if(b<rp.r2.l)
 	mp.r2 = rp.r2.mask();
-      else
-	mp.r2 = rp.r1;
+
     }
     else {
       if(a<rp.r1.l)
@@ -557,8 +557,7 @@ int nxtrimWriter::write(matePair m) {
       n_se+=se_out.write(m.se);  
     }
   }
-  else{
-    
+  else{    
     m.mp.print();
     m.unknown.print();
     if(!justmp) {

@@ -30,6 +30,8 @@ int checkParameters(int argc,char **argv,po::variables_map & vm) {
       ("stdout", "print trimmed reads to stdout")
       ("ignorePF", "ignore chastity/purity filters in read headers")
       ("justmp", "just creates a the mp/unknown libraries (reads with adapter at the start will be completely N masked)")
+      ("mp", "just creates the mp library. Useful if you suspect a high level of contamination ")
+      ("unknown", "just creates the unknown library")
       ("separate", "output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved.")
       ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )  ")
       ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
