@@ -257,7 +257,7 @@ bool matePair::trimExternal(readPair& rp) {
     b = (int)tmp;
 
   if(DEBUG>1) {
-    if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r1.l)) {
+    if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r2.l)) {
       cerr << "EXTERNAL ADAPTER DETECTED " << a << " " << b << endl;
       if(a>0 && a<rp.r1.l) {
 	rp.r1.window(a,rp.r1.l).print();
@@ -291,7 +291,7 @@ bool matePair::trimExternal(readPair& rp) {
     }
   }
 
-  if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r1.l)) {
+  if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r2.l)) {
     found = true;
     if(justmp) {
       mp.r1 = rp.r1;      
@@ -428,7 +428,13 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
       unknown=readPair(readpair.r1,readpair.r2);
       trimUnknown();
     }    
-    if(DEBUG>1) cerr << "CASE A"<<endl;
+    if(DEBUG>1) {
+      cerr << "CASE A"<<endl;
+      cerr<<"UNKNOWN: "<<endl;
+      unknown.print();
+      cerr<<"PE: "<<endl;
+      pe.print();
+    }
   }
   else {//adapter found.
     bool both_have_adapter = a1<L1 && a2<L2;
@@ -556,6 +562,8 @@ int nxtrimWriter::write(matePair m) {
       n_pe+=pe_out.write(m.pe);
       n_se+=se_out.write(m.se);  
     }
+    if(DEBUG>0)
+      cerr << "Wrote: n_mp="<<n_mp<<" n_unk="<<n_unk<<" n_pe="<<n_pe<<" n_se="<<n_se<<endl;
   }
   else{    
     m.mp.print();

@@ -14,7 +14,7 @@ static: all
 debug: CFLAGS = -Wall -g -I$(BOOST_ROOT)/include
 debug: all
 
-all: mergeReads nxtrim test
+all: mergeReads nxtrim 
 test: test.cpp fastqlib.o utilityfunc.o matepair.o
 	$(CC) $(CFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o test   $(LFLAGS) 
 githash.h: 
