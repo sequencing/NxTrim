@@ -262,7 +262,7 @@ bool matePair::trimExternal(readPair& rp) {
       if(a>0 && a<rp.r1.l) {
 	rp.r1.window(a,rp.r1.l).print();
       }
-      if(b>0 && b<rp.r1.l) {
+      if(b>0 && b<rp.r2.l) {
 	rp.r2.window(b,rp.r2.l).print();
       }
       //      rp.r1.print();
@@ -271,7 +271,7 @@ bool matePair::trimExternal(readPair& rp) {
   }
 
   //  OK NO ADAPTERS FOUND, LETS TRY LOOKING FOR AN OVERLAP -> PAIRED END FRAG
-  if(!(a>0 && a<rp.r1.l)&&!(b>0 && b<rp.r1.l)) {
+  if(!(a>0 && a<rp.r1.l)&&!(b>0 && b<rp.r2.l)) {
     fqread rc2 = rp.r2.rc();
     
     int mini=rp.r1.l,mind=rp.r1.l;
