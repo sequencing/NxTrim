@@ -1,2 +1,2 @@
-#define VERSION "v0.3.1-alpha"
+#define VERSION "v0.3.2-alpha"
 
