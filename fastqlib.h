@@ -16,7 +16,7 @@ class fqread {
   fqread window(int a,int b);
   fqread window(int a);
   fqread rc();
-  int print();
+  void print();
   int clear();
 };
 
@@ -26,7 +26,7 @@ class readPair {
   readPair(fqread read1,fqread read2);
   int rc();
   int set(fqread read1, fqread read2);
-  int print();
+  void print();
   fqread r1,r2;
   int l;
   bool filtered;

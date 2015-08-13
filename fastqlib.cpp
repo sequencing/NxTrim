@@ -124,14 +124,13 @@ fqread fqread::window(int a) {
   return(fqread(h,s.substr(a),l3,q.substr(a)));
 }
 
-int fqread::print() {
+void fqread::print() {
   if(l>0) {
     cout << h << endl;
     cout << s << endl;
     cout <<l3 << endl;
     cout << q << endl;
   }
-  return(0);
 }
 
 
@@ -207,7 +206,7 @@ readPair pairReader::next() {
   return( readPair(f1->next(),f2->next()));
 }
 
-int readPair::print() {
+void readPair::print() {
   r1.print();
   r2.print();
 }
