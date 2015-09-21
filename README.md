@@ -52,7 +52,7 @@ spades.py -t 4 --hqmp1-12 sample.allmp.fastq.gz -o output_dir
 ```
 We concatenate the unknown/mp libraries for SPAdes.  SPAdes versions>3.1.0 seems to perform better without our virtual single/pe libraries hence we trim with the `--justmp` flag. 
 
-**Note:** We achieved good results using the above commands on the bacterial samples analysed in the NxTrim paper.  These had moderate coverage (<50X).  If you have very high coverage samples, it might be preferable to not use the "unknown" library at all to remove the risk of PE contaminants, or just treat it as a single read library.
+**Note:** We achieved good results using the above commands on the bacterial samples analysed in the NxTrim paper.  These had moderate coverage (<50X).  If you have very high coverage samples, it might be preferable to not use the "unknown" library at all or just treat it as a single-ended library, this will remove the risk of PE contaminants causing problems.
 
 ####Output:
 
