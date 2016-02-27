@@ -167,10 +167,14 @@ int fastqWriter::open(string fname){
 
 int fastqWriter::write(fqread & read) {
   if(read.l>0) {
-    assert(gzwrite(fp,(char *)read.h.c_str(),read.h.size())>0);
-    assert(gzwrite(fp,(char *)read.s.c_str(),read.s.size())>0);
-    assert(gzwrite(fp,(char *)read.l3.c_str(),read.l3.size())>0);
-    assert(gzwrite(fp,(char *)read.q.c_str(),read.q.size())>0);
+    gzwrite(fp,(char *)read.h.c_str(),read.h.size());
+    gzwrite(fp,"\n",1);
+    gzwrite(fp,(char *)read.s.c_str(),read.s.size());
+    gzwrite(fp,"\n",1);	
+    gzwrite(fp,(char *)read.l3.c_str(),read.l3.size());
+    gzwrite(fp,"\n",1);	
+    gzwrite(fp,(char *)read.q.c_str(),read.q.size());
+    gzwrite(fp,"\n",1);
     return(1);
   }
   else  return(0);
