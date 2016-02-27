@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <assert.h> 
+#include <stdlib.h>
 
 using namespace std;
 
@@ -59,6 +60,8 @@ void printMatrix(T **H,int nrow,int ncol) {
   }
 }
 
+
+void die(const string & err);
 
 bool fileexists(string fname);
 

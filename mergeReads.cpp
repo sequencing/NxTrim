@@ -10,10 +10,6 @@ string percent(int num,int den) {
   sprintf(buffer,"%d / %d\t( %.2f %% )\t",num,den,100. * float(num)/float(den));
   return(buffer);
 }
-void die(const string & err) {
-  cerr << "ERROR: "<< err << endl;
-  exit(1);
-}
 
 void usage() {
   cerr << "\nProgram:\tmergeReads: Simple utility for creating an interleaved fastq file from two separate R1/R2 files."<<endl;

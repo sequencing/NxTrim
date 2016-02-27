@@ -1,5 +1,7 @@
 #include "utilityfunc.h"
 
+using namespace std;
+
 int argmax(vector<double> & x) {
   int maxind=0;
   for(int i=1;i<(int)x.size();i++) 
@@ -25,4 +27,9 @@ int which_max(int *x,int n) {
 bool fileexists(string fname){
   ifstream ifile(fname.c_str());
   return ifile;
+}
+
+void die(const string & err) {
+  cerr << "ERROR: "<< err << endl;
+  exit(1);
 }

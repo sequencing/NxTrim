@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "kseq.h"
 KSEQ_INIT(gzFile, gzread)  
-
+using namespace std;
 class fqread {
  public:
   fqread();
@@ -39,6 +39,7 @@ class readPair {
 class fastqReader {
  public:
   fastqReader(string fname);
+  ~fastqReader();
   int next(fqread & r);
 
  private:

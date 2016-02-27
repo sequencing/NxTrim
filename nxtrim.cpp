@@ -11,11 +11,6 @@ string percent(int num,int den) {
   return(buffer);
 }
 
-void die(const string & err) {
-  cerr << "ERROR: "<< err << endl;
-  exit(1);
-}
-
 void usage() {
   cerr << "\nProgram:\tnxtrim" << endl;
   cerr << "Version:\t" << VERSION <<endl;
@@ -98,24 +93,22 @@ int main(int argc,char **argv) {
       case 's': similarity = atof(optarg); break;    
       case 'v': minoverlap = atoi(optarg); break;    
       case 'l': minlen = atoi(optarg); break;    
-      case STDOUT: write_stdout=true;
-      case JUSTMP:justmp=true;
-      case JOINREADS:joinreads=true;
-      case NORC:rc=false;
-      case PMP:preserve_mp=true;
-      case IGNOREPF:ignorePF=true;
-      case SEPARATE:separate=true;
-      case '?': usage();
-      case 'h': usage();
-      default: die("Unknown argument:"+(string)optarg+"\n");
+      case STDOUT: write_stdout=true; break;    
+      case JUSTMP:justmp=true; break;    
+      case JOINREADS:joinreads=true; break;    
+      case NORC:rc=false; break;    
+      case PMP:preserve_mp=true; break;    
+      case IGNOREPF:ignorePF=true; break;    
+      case SEPARATE:separate=true; break;    
+      default: die("Unrecognised argument");
       }
   }
   if(!(r1==NULL&&r2==NULL) && !(r1!=NULL&&r2!=NULL))
     die("both --r1 and --r2 must be speicified");
-  if(write_stdout && ( r1!=NULL || r2!=NULL ))
-    die("--stdout and --r1/--r2 are incompatible");
-  if(!write_stdout && (r1==NULL || r2==NULL) )
-    die("one of--stdout and --r1/--r2 must be specified");
+  if(write_stdout && !prefix.empty())
+    die("--stdout and -O are incompatible");
+  if(!write_stdout && prefix.empty() )
+    die("one of--stdout and -O must be specified");
   if(preserve_mp&&justmp) 
     die("the --preserve_mp and --justmp flags are incompatible!");
 
