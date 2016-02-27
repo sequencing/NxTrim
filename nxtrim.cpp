@@ -112,11 +112,15 @@ int main(int argc,char **argv) {
   if(preserve_mp&&justmp) 
     die("the --preserve_mp and --justmp flags are incompatible!");
 
+  if(write_stdout)  
+    if(justmp)
+      cerr << "Writing to stdout"<<endl;
+    else
+      die("--stdout can only be used with the --justmp flag");
+  else 
+    cerr << "Output: " << prefix <<".*.fastq.gz"<<endl;
+
   cerr << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
-
-  if(write_stdout)  cerr << "Writing to stdout"<<endl;
-  else cerr << "Output: " << prefix <<".*.fastq.gz"<<endl;
-
   if(preserve_mp) cerr<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
   if(joinreads) cerr<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
 

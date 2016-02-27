@@ -131,7 +131,7 @@ fqread fqread::window(int a) {
 
 void fqread::print() {
   if(l>0) {
-    cout << h << endl;
+    cout << "@"<<h << endl;
     cout << s << endl;
     cout <<l3 << endl;
     cout << q << endl;
