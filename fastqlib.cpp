@@ -2,6 +2,10 @@
 using namespace std;
 
 fqread::fqread(string header,string dna,string line3,string qual){
+  set( header, dna, line3, qual)  ;
+}
+  
+int fqread::set(string header,string dna,string line3,string qual){
   description=true;
   h=header;
   s=dna;
@@ -24,6 +28,7 @@ fqread::fqread(string header,string dna,string line3,string qual){
       filtered=false;
   }
   assert(dna.size()==qual.size());
+  return(0);
 }
 
 fqread::fqread() {
@@ -136,11 +141,9 @@ void fqread::print() {
 
 fastqReader::fastqReader(string fname){
   warned=false;
-  if(! infile.open(fname) ) {
-    cerr << "Problem reading "<<fname<<endl;
-    exit(1);
-  }
-  if(!infile.good()) {
+  fp = gzopen(fname.c_str(), "r");
+  seq = kseq_init(fp);
+  if(!fp ) {
     cerr << "Problem reading "<<fname<<endl;
     exit(1);
   }
@@ -149,20 +152,25 @@ fastqReader::fastqReader(string fname){
 fastqWriter::fastqWriter(){
 }
 
+fastqWriter::~fastqWriter(){
+  gzclose(fp);  
+}
+
 fastqWriter::fastqWriter(string fname){
   open(fname);
 }
 
 int fastqWriter::open(string fname){
-  return(  outfile.open(fname) );
+  fp = gzopen(fname.c_str(), "wb");
+  return(0);
 }
 
 int fastqWriter::write(fqread & read) {
   if(read.l>0) {
-    outfile << read.h <<endl;
-    outfile << read.s <<endl;
-    outfile << read.l3 <<endl;
-    outfile << read.q <<endl;
+    assert(gzwrite(fp,(char *)read.h.c_str(),read.h.size())>0);
+    assert(gzwrite(fp,(char *)read.s.c_str(),read.s.size())>0);
+    assert(gzwrite(fp,(char *)read.l3.c_str(),read.l3.size())>0);
+    assert(gzwrite(fp,(char *)read.q.c_str(),read.q.size())>0);
     return(1);
   }
   else  return(0);
@@ -178,53 +186,34 @@ int fastqWriter::write(readPair & p) {
     return(0);
 }
 
-bool fastqReader::fin() {
-  if(infile) return(true);
-  else return(false);
-}
-
-fqread fastqReader::next() {
-  string s,h,l3,q;
-  getline(infile,h);
-  getline(infile,s);
-  getline(infile,l3);
-  getline(infile,q);
-  fqread r(h,s,l3,q);
-  if(!warned&&!r.description&&infile)  {
+int fastqReader::next(fqread & r) {
+  if(kseq_read(seq)<0)
+    return(0);
+  r.set((string)seq->name.s+(string)+" "+seq->comment.s,(string)seq->seq.s,"+",(string)seq->qual.s);
+  if(!warned&&!r.description&&fp)  {
     cerr << "WARNING: no description found in read header.  Assuming read passed passed chastity/purity filters." << endl;
     warned=true;
   }    
-  return(r);
+  return(1);
 }
 
 pairReader::pairReader(string fname1,string fname2) {
   f1 = new fastqReader(fname1);
-  f2 = new fastqReader(fname2);
+  f2 = new fastqReader(fname2);  
 }
 
-readPair pairReader::next() {
-  return( readPair(f1->next(),f2->next()));
-}
 
 void readPair::print() {
   r1.print();
   r2.print();
 }
 
-int readPair::set(fqread read1, fqread read2) {
-  r1 = read1;
-  r2 = read2;
-  filtered = read1.filtered || read2.filtered;  
-  return(0);
-}
 
-bool pairReader::getPair(readPair & p) {
-  if(f1->fin() && f2->fin()) {
-    p.set(f1->next(),f2->next());
-    return(f1->fin() && f2->fin());
-  } else {
-    return false;
-  }
+int pairReader::next(readPair & p) {
+  bool ret = f1->next(p.r1)&&f2->next(p.r2);
+  if(ret) 
+    p.filtered = p.r1.filtered || p.r2.filtered;
+  return(ret);
 }
 
 pairWriter::pairWriter(){

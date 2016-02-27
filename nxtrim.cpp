@@ -1,8 +1,7 @@
 #include "version.h"
 #include "matepair.h"
 #include "fastqlib.h"
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
+#include <getopt.h>
 
 using namespace std;
 
@@ -12,87 +11,123 @@ string percent(int num,int den) {
   return(buffer);
 }
 
-int checkParameters(int argc,char **argv,po::variables_map & vm) {
-    cerr << "\nNxTrim "<<VERSION<<endl<<endl;
-
-  po::options_description desc("Allowed options");
-  try{
-    desc.add_options()
-      ("help,h", "produce help message")
-      ("r1,1", po::value<string>(), "read 1 in fastq format (gzip allowed)")
-      ("r2,2", po::value<string>(), "read 2 in fastq format (gzip allowed)")
-      ("output-prefix,O", po::value<string>(), "output prefix")
-      ("joinreads", "try to merge overhangs from R2 with R1 (default: no joining)")
-      //    ("levenshtein", "use Levenshtein distance instead of Hamming distance (slower but possibly more accurate)")
-      ("norc", "do NOT reverse-complement mate-pair reads (use this if your reads are already in FR orientation)")
-      ("preserve-mp", "preserve MPs even when the corresponding PE has longer reads")
-      ("stdout", "print trimmed reads to stdout")
-      ("ignorePF", "ignore chastity/purity filters in read headers")
-      ("justmp", "just creates a the mp/unknown libraries (reads with adapter at the start will be completely N masked)")
-      ("mp", "just creates the mp library. Useful if you suspect a high level of contamination ")
-      ("unknown", "just creates the unknown library")
-      ("separate", "output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved.")
-      ("similarity", po::value<float>()->default_value(0.85), "The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )  ")
-      ("minoverlap", po::value<int>()->default_value(12), "The minimum overlap to be considered for matching")
-      ("minlength", po::value<int>()->default_value(21), "The minimum read length to output (smaller reads will be filtered)");
-    
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);    
-  }
-  catch(po::unknown_option e){
-    cerr << e.what() << std::endl;
-    cerr << "Type nxtrim -h for help."<<endl;
-    exit(1);
-  }
-  
-  if (vm.count("help") || argc==1) {
-    cerr << desc << "\n";
-    exit(1);
-  }
-
-  if (!vm.count("r1") || !vm.count("r2")) {
-    cerr << "Missing input!"<<endl;
-    exit(1);
-  }
-
-  if(!vm.count("output-prefix") && !vm.count("stdout")) {
-    cerr << "Missing output file!"<<endl;
-    exit(1);     
-  }
-  return(0);
+void die(const string & err) {
+  cerr << "ERROR: "<< err << endl;
+  exit(1);
 }
 
+void usage() {
+  cerr << "\nProgram:\tnxtrim" << endl;
+  cerr << "Version:\t" << VERSION <<endl;
+  cerr << "Contact:\tjoconnell@illumina.com\n" << endl;
+  cerr << "Copyright (c) 2016, Illumina, Inc. All rights reserved. See LICENSE for further details.\n"<<endl;
+  cerr << "Usage:\tnxtrim -1 R1.fastq.gz -2 R2.fastq.gz [options]\n" << endl;
+  cerr << "Required arguments:"    <<endl;
+  cerr << "  -1 [ --r1 ] arg                 read 1 in fastq format (gzip allowed)"<<endl;
+  cerr << "  -2 [ --r2 ] arg                 read 2 in fastq format (gzip allowed)"<<endl;
+  cerr << "Allowed options:"<<endl;
+  cerr << "  -O [ --output-prefix ] arg      output prefix"<<endl;
+  cerr << "  --stdout                        print trimmed reads to stdout"<<endl;
+  cerr << "  --justmp                        just creates a the mp/unknown libraries (reads with adapter at the start will be completely N masked)"<<endl;
+  cerr << "  --joinreads                     try to merge overhangs from R2 with R1 (default: no joining)"<<endl;
+  cerr << "  --norc                          do NOT reverse-complement mate-pair reads (use this if your reads are already in FR orientation)"<<endl;
+  cerr << "  --preserve-mp                   preserve MPs even when the corresponding PE has longer reads"<<endl;
+  cerr << "  --ignorePF                      ignore chastity/purity filters in read headers"<<endl;
+  //    cerr << "  --mp                            just creates the mp library. Useful if you suspect a high level of contamination" <<endl;
+  //    cerr << "  --unknown                       just creates the unknown library"<<endl;
+  cerr << "  --separate                      output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved."<<endl;
+  cerr << "  -s, --similarity arg (=0.85)        The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )"<<endl;
+  cerr << "  -v, --minoverlap arg (=12)          The minimum overlap to be considered for matching"<<endl;
+  cerr << "  -l, --minlength arg (=21)           The minimum read length to output (smaller reads will be filtered)"<<endl;
+  exit(0);
+}
+
+#define STDOUT 0
+#define JUSTMP 1
+#define JOINREADS 2
+#define NORC 3
+#define PMP 4
+#define IGNOREPF 5
+#define MP 6
+#define UNKNOWN 7
+#define SEPARATE 8
+
 int main(int argc,char **argv) {
+  int c;
+  if(argc<2)
+    usage();
 
-  po::variables_map opt;
-  checkParameters(argc,argv,opt);
+  bool joinreads=false;
+  bool preserve_mp=false;
+  bool justmp=false;
+  int minoverlap=12;
+  float similarity=0.85;
+  int minlen=21;
+  char *r1 = NULL;
+  char *r2 = NULL;
+  string prefix;
+  bool rc = true;
+  bool ignorePF = false;
+  bool write_stdout=false;
+  bool hamming = true;//always use hamming.
+  bool separate=false;
+  static struct option loptions[] =    {
+    {"r1",1,0,'1'},	
+    {"r2",1,0,'2'},	
+    {"output-prefix",1,0,'O'},	
+    {"stdout",0,0,STDOUT},
+    {"justmp",0,0,JUSTMP},
+    {"joinreads",0,0,JOINREADS},
+    {"norc",0,0,NORC},
+    {"preserve-mp",0,0,PMP},
+    {"ignorePF",0,0,IGNOREPF},
+    {"mp",0,0,MP},
+    {"unknown",0,0,UNKNOWN},
+    {"separate",0,0,SEPARATE},
+    {"similarity",1,0,'s'},
+    {"minoverlap",1,0,'v'},
+    {"minlength",1,0,'l'},
+    {0,0,0,0}
+  };
+  while ((c = getopt_long(argc, argv, "1:2:O:s:v:l:",loptions,NULL)) >= 0) {  
+    switch (c)
+      {
+      case '1': r1 = optarg; break;
+      case '2': r2 = optarg; break;
+      case 'O': prefix = optarg; break;
+      case 's': similarity = atof(optarg); break;    
+      case 'v': minoverlap = atoi(optarg); break;    
+      case 'l': minlen = atoi(optarg); break;    
+      case STDOUT: write_stdout=true;
+      case JUSTMP:justmp=true;
+      case JOINREADS:joinreads=true;
+      case NORC:rc=false;
+      case PMP:preserve_mp=true;
+      case IGNOREPF:ignorePF=true;
+      case SEPARATE:separate=true;
+      case '?': usage();
+      case 'h': usage();
+      default: die("Unknown argument:"+(string)optarg+"\n");
+      }
+  }
+  if(!(r1==NULL&&r2==NULL) && !(r1!=NULL&&r2!=NULL))
+    die("both --r1 and --r2 must be speicified");
+  if(write_stdout && ( r1!=NULL || r2!=NULL ))
+    die("--stdout and --r1/--r2 are incompatible");
+  if(!write_stdout && (r1==NULL || r2==NULL) )
+    die("one of--stdout and --r1/--r2 must be specified");
+  if(preserve_mp&&justmp) 
+    die("the --preserve_mp and --justmp flags are incompatible!");
 
-  bool joinreads = opt.count("joinreads");
-  bool preserve_mp = opt.count("preserve-mp");
-  bool justmp = opt.count("justmp");
-  int minoverlap= opt["minoverlap"].as<int>()-1;//+1 since we use < frequently
-  float similarity=opt["similarity"].as<float>();
-  int minlen=opt["minlength"].as<int>();
-  string r1 = opt["r1"].as<string>();
-  string r2 = opt["r2"].as<string>();
-  string prefix="";
-  if(opt.count("output-prefix"))
-    prefix = opt["output-prefix"].as<string>();
-  bool hamming = true;
-  bool rc = !opt.count("norc");
-  bool ignorePF = opt.count("ignorePF");
   cerr << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
 
-  if(opt.count("stdout"))  cerr << "Writing to stdout"<<endl;
+  if(write_stdout)  cerr << "Writing to stdout"<<endl;
   else cerr << "Output: " << prefix <<".*.fastq.gz"<<endl;
 
   if(preserve_mp) cerr<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
   if(joinreads) cerr<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
 
-  if(preserve_mp&&justmp) {
-    cerr << "ERROR: the --preserve_mp and --justmp flags are incompatible!" << endl;
-    return(1);
-  }
+
   if(justmp)
     preserve_mp=true;
 
@@ -106,19 +141,19 @@ int main(int argc,char **argv) {
   bool trim_warn=true;
 
   nxtrimWriter out;
-  if(opt.count("stdout")) 
-    out.open(justmp,opt.count("separate"));
+  if(write_stdout) 
+    out.open(justmp,separate);
   else  
-    out.open(prefix,justmp,opt.count("separate"));
+    out.open(prefix,justmp,separate);
 
   int se_only = 0;
-  while(infile.getPair(p)) {
+  while(infile.next(p)) {
 
     if(p.r1.l!=p.r2.l && trim_warn) {
       cerr << "WARNING: reads with differing lengths. Has this data already been trimmed?"<<endl;
       trim_warn=false;
     }
-      if((!p.r1.filtered && !p.r2.filtered)||ignorePF) {
+    if((!p.r1.filtered && !p.r2.filtered)||ignorePF) {
       bool weird=m.build(p,minoverlap,similarity,minlen,joinreads,hamming,preserve_mp,justmp);
       nweird+=weird;
       if(!weird) {

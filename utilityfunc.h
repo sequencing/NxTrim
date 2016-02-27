@@ -7,12 +7,9 @@
 #include <sstream> 
 #include <fstream>
 #include <iostream>
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-namespace io = boost::iostreams;
+#include <assert.h> 
 
 using namespace std;
-
 
 int which_max(int *x,int n);
 
@@ -36,9 +33,6 @@ vector<int> argsort(vector<T> *list) {
   }
   return(ret);
 }
-
-
-
 
 template <class T>
 T **newMatrix(int nrow,int ncol) {
@@ -65,41 +59,6 @@ void printMatrix(T **H,int nrow,int ncol) {
   }
 }
 
-
-/******************************************************/
-/*                  INPUT FILE                        */
-/******************************************************/
-class ifile : public io::filtering_istream {
-private:
-	string file;
-	ifstream fd;
-
-public:
-	ifile();
-	ifile(string filename , bool binary = false);
-	~ifile();
-	string name();
-	bool open(string filename, bool binary = false);
-	bool readString(string &);
-	void close();
-
-};
-
-
-class ofile : public io::filtering_ostream {
-private:
-	string file;
-	ofstream fd;
-
-public:
-	ofile();
-	ofile(string filename , bool binary = false);
-	~ofile();
-	string name();
-	bool open(string filename, bool binary = false);
-	void writeString(string &);
-	void close();
-};
 
 bool fileexists(string fname);
 

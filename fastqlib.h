@@ -1,11 +1,16 @@
 #pragma once
 #include "utilityfunc.h"
+#include <zlib.h>  
+#include <stdio.h>
+#include "kseq.h"
+KSEQ_INIT(gzFile, gzread)  
 
 class fqread {
  public:
   fqread();
   fqread(int L);
   fqread(string header,string dna,string line3,string qual);
+  int set(string header,string dna,string line3,string qual);
   int l;
   bool filtered,description;//if filtered is true, it failed QC
   string h,s,l3,q;
@@ -25,7 +30,6 @@ class readPair {
   readPair();
   readPair(fqread read1,fqread read2);
   int rc();
-  int set(fqread read1, fqread read2);
   void print();
   fqread r1,r2;
   int l;
@@ -35,33 +39,33 @@ class readPair {
 class fastqReader {
  public:
   fastqReader(string fname);
-  fqread next();
-  bool fin();
+  int next(fqread & r);
 
  private:
-  ifile infile;
   bool warned;
+  gzFile fp;
+  kseq_t *seq;
 };
 
 
 class fastqWriter {
  public:
   fastqWriter();
+  ~fastqWriter();
   fastqWriter(string fname);
   int open(string fname);
   int write(fqread & read);
   int write(readPair & read);
  private:
-  ofile outfile;
+  gzFile fp;
 };
 
 class pairReader {
  public:
   pairReader(string fname1,string fname2);
-  readPair next();
+  int next(readPair & r);
   int print();
   bool getPair(readPair & p);
-
  private:
   fastqReader *f1,*f2;
 };
