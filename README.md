@@ -68,3 +68,5 @@ Free registration required.
 http://res.illumina.com/documents/products/technotes/technote_nextera_matepair_data_processing.pdf
 
 http://res.illumina.com/documents/products/appnotes/appnote-nextera-mate-pair-bacteria.pdf
+
+[O’Connell, Jared, et al. "NxTrim: optimized trimming of Illumina mate pair reads." Bioinformatics 31.12 (2015): 2035-2037.](http://bioinformatics.oxfordjournals.org/content/31/12/2035.abstract)
