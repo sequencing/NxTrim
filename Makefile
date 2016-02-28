@@ -35,3 +35,4 @@ utilityfunc.o:  utilityfunc.cpp utilityfunc.h
 clean:
 	rm *.o nxtrim test mergeReads version.h
 
+
