@@ -6,6 +6,8 @@ This software is provided under the terms and conditions of the BSD 2-Clause Lic
 
 You should have received a copy of the BSD 2-Clause License along with this program. If not, see https://github.com/sequencing/licenses/.
 
+Some detailed assembly results for Nextera Mate-Pair data are available [here](https://github.com/sequencing/NxTrim/wiki/Bacterial-assembles-using-Nextera-Mate-pairs).
+
 ####Installation
 ```
 git clone https://github.com/sequencing/NxTrim.git
