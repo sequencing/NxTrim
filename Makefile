@@ -1,8 +1,4 @@
-CC = g++
-
-# ifndef BOOST_ROOT
-#     $(error BOOST_ROOT is undefined.  Point BOOST_ROOT at your boost installation ie. BOOST_ROOT/lib and BOOST_ROOT/include should exist)
-# endif
+Cxx = g++
 
 
 CFLAGS = -O3 
@@ -25,17 +21,17 @@ version.h:
 
 
 test: test.cpp fastqlib.o utilityfunc.o matepair.o
-	$(CC) $(CFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o test   $(LFLAGS)
+	$(CXX) $(CFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o test   $(LFLAGS)
 nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o version.h
-	$(CC) $(CFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o -o nxtrim  $(LFLAGS)
+	$(CXX) $(CFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o -o nxtrim  $(LFLAGS)
 mergeReads: mergeReads.cpp fastqlib.o utilityfunc.o fastqlib.o githash.h version.h
-	$(CC) $(CFLAGS)  mergeReads.cpp fastqlib.o utilityfunc.o -o mergeReads   $(LFLAGS)
+	$(CXX) $(CFLAGS)  mergeReads.cpp fastqlib.o utilityfunc.o -o mergeReads   $(LFLAGS)
 matepair.o: matepair.cpp matepair.h fastqlib.h
-	$(CC) $(CFLAGS) -c matepair.cpp
+	$(CXX) $(CFLAGS) -c matepair.cpp
 fastqlib.o: fastqlib.cpp fastqlib.h utilityfunc.h
-	$(CC) $(CFLAGS) -c fastqlib.cpp
+	$(CXX) $(CFLAGS) -c fastqlib.cpp
 utilityfunc.o:  utilityfunc.cpp utilityfunc.h
-	$(CC) $(CFLAGS) -c utilityfunc.cpp 
+	$(CXX) $(CFLAGS) -c utilityfunc.cpp 
 clean:
 	rm *.o nxtrim test mergeReads version.h
 

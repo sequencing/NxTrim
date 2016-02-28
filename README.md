@@ -6,10 +6,6 @@ This software is provided under the terms and conditions of the BSD 2-Clause Lic
 
 You should have received a copy of the BSD 2-Clause License along with this program. If not, see https://github.com/sequencing/licenses/.
 
-####Dependencies
-
-BOOST - we use Boost 1.55.0 but most recent versions are probably fine
-
 ####Installation
 ```
 git clone https://github.com/sequencing/NxTrim.git
@@ -17,20 +13,6 @@ cd NxTrim
 make
 ./nxtrim
 ```
-
-You will also need to point the BOOST_ROOT environment variable at your boost installation eg.
-
-``
-export BOOST_ROOT=/your/boost/installation
-``
-
-if boost is installed globally then
-
-``
-export BOOST_ROOT=/usr/
-``
-
-should work
 
 ####Usage
 Trim the data:
