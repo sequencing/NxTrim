@@ -139,7 +139,7 @@ int main(int argc,char **argv) {
 
   nxtrimWriter out;
   if(write_stdout) 
-    out.open(justmp,separate);
+    out.open("-",justmp,separate);
   else  
     out.open(prefix,justmp,separate);
 

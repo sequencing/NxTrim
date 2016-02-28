@@ -167,25 +167,36 @@ fastqWriter::fastqWriter(string fname){
 }
 
 int fastqWriter::open(string fname){
-  fp = gzopen(fname.c_str(), "wb");
-  if(!fp ) {
-    cerr << "Problem reading "<<fname<<endl;
-    exit(1);
+  if(fname=="-") {//STDOUT
+    _stdout=true;
+  }
+  else{
+    _stdout=false;
+    fp = gzopen(fname.c_str(), "wb");
+    if(!fp ) {
+      cerr << "Problem reading "<<fname<<endl;
+      exit(1);
+    }
   }
   return(0);
 }
 
 int fastqWriter::write(fqread & read) {
   if(read.l>0) {
-    if(gzwrite(fp,"@",1)==0) die("problem writing output");
-    if(gzwrite(fp,(char *)read.h.c_str(),read.h.size())==0) die("problem writing output");
-    if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
-    if( gzwrite(fp,(char *)read.s.c_str(),read.s.size())==0) die("problem writing output");
-    if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
-    if(    gzwrite(fp,(char *)read.l3.c_str(),read.l3.size())==0) die("problem writing output");
-    if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
-    if(    gzwrite(fp,(char *)read.q.c_str(),read.q.size())==0) die("problem writing output");
-    if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
+    if(_stdout) {
+      read.print();
+    }
+    else{
+      if(gzwrite(fp,"@",1)==0) die("problem writing output");
+      if(gzwrite(fp,(char *)read.h.c_str(),read.h.size())==0) die("problem writing output");
+      if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
+      if( gzwrite(fp,(char *)read.s.c_str(),read.s.size())==0) die("problem writing output");
+      if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
+      if(    gzwrite(fp,(char *)read.l3.c_str(),read.l3.size())==0) die("problem writing output");
+      if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
+      if(    gzwrite(fp,(char *)read.q.c_str(),read.q.size())==0) die("problem writing output");
+      if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
+    }
     return(1);
   }
   else  return(0);

@@ -59,6 +59,7 @@ class fastqWriter {
   int write(readPair & read);
  private:
   gzFile fp;
+  bool _stdout;//true if writing to stdout
 };
 
 class pairReader {
@@ -78,7 +79,7 @@ class pairWriter {
 
   //interleaved
   pairWriter(string fname);
-  int  open(string fname);
+  int open(string fname);
   //separate files
   pairWriter(string fname1,string fname2);
   int  open(string fname1,string fname2);

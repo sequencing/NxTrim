@@ -516,24 +516,29 @@ nxtrimWriter::nxtrimWriter(string prefix,bool jmp,bool separate) {
 }
 
 int nxtrimWriter::open(string prefix,bool jmp,bool separate) {
+  if(prefix=="-")
+    return(open(jmp,separate));
   n_mp=0;
   n_pe=0;
   n_se=0;
   n_unk=0;
   justmp = jmp;
 
-  if(separate)     mp_out.open(prefix+"_R1.mp.fastq.gz", prefix+"_R2.mp.fastq.gz");
-  else     mp_out.open(prefix+".mp.fastq.gz");
+  if(separate)     
+    mp_out.open(prefix+"_R1.mp.fastq.gz", prefix+"_R2.mp.fastq.gz");
+  else     
+    mp_out.open(prefix+".mp.fastq.gz");
 
-  if(separate)    unknown_out.open(prefix+"_R1.unknown.fastq.gz",prefix+"_R2.unknown.fastq.gz");
-  else unknown_out.open(prefix+".unknown.fastq.gz");  
+  if(separate)    
+    unknown_out.open(prefix+"_R1.unknown.fastq.gz",prefix+"_R2.unknown.fastq.gz");
+  else 
+    unknown_out.open(prefix+".unknown.fastq.gz");  
 
   if(!justmp) {
     if(separate) pe_out.open(prefix+"_R1.pe.fastq.gz",prefix+"_R2.pe.fastq.gz");
     else  pe_out.open(prefix+".pe.fastq.gz");
     se_out.open(prefix+".se.fastq.gz");
   }
-  print_to_stdout=false;
   return(0);
 }
 
@@ -549,29 +554,21 @@ int nxtrimWriter::open(bool jmp,bool separate) {
   n_se=0;
   n_unk=0;
   justmp = jmp;
-
-  print_to_stdout=true;
+  mp_out.open("-");
+  pe_out.open("-");
+  unknown_out.open("-");
+  se_out.open("-");
   return(0);
 }
 
 int nxtrimWriter::write(matePair m) {
-  if(!print_to_stdout) {
-    n_mp+=mp_out.write(m.mp);
-    n_unk+=unknown_out.write(m.unknown);  
-    if(!justmp) {
-      n_pe+=pe_out.write(m.pe);
-      n_se+=se_out.write(m.se);  
-    }
-    if(DEBUG>0)
-      cerr << "Wrote: n_mp="<<n_mp<<" n_unk="<<n_unk<<" n_pe="<<n_pe<<" n_se="<<n_se<<endl;
+  n_mp+=mp_out.write(m.mp);
+  n_unk+=unknown_out.write(m.unknown);  
+  if(!justmp) {
+    n_pe+=pe_out.write(m.pe);
+    n_se+=se_out.write(m.se);  
   }
-  else{    
-    m.mp.print();
-    m.unknown.print();
-    if(!justmp) {
-      m.pe.print();
-      m.se.print();  
-    }
-  }
+  if(DEBUG>0)      cerr << "Wrote: n_mp="<<n_mp<<" n_unk="<<n_unk<<" n_pe="<<n_pe<<" n_se="<<n_se<<endl;
+
   return(0);
 }
