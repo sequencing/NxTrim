@@ -1,6 +1,6 @@
 nxtrim: Software to remove Nextera Mate Pair adapters and categorise reads according to the orientation implied by the adapter location.  This software is not commercially supported.
 
-Copyright (c) 2014, Illumina, Inc. All rights reserved.
+Copyright (c) 2016, Illumina, Inc. All rights reserved.
 
 This software is provided under the terms and conditions of the BSD 2-Clause License
 
