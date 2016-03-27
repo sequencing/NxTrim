@@ -215,7 +215,12 @@ int fastqWriter::write(readPair & p) {
 int fastqReader::next(fqread & r) {
   if(kseq_read(seq)<0)
     return(0);
-  r.set((string)seq->name.s+(string)+" "+seq->comment.s,(string)seq->seq.s,"+",(string)seq->qual.s);
+
+  if(seq->comment.s==NULL)
+    r.set((string)seq->name.s,(string)seq->seq.s,"+",(string)seq->qual.s);
+  else
+    r.set((string)seq->name.s+" "+(string)seq->comment.s,(string)seq->seq.s,"+",(string)seq->qual.s);
+  
   if(!warned&&!r.description&&fp)  {
     cerr << "WARNING: no description found in read header.  Assuming read passed passed chastity/purity filters." << endl;
     warned=true;
