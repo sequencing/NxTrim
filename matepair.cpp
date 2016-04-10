@@ -166,7 +166,7 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
   }
   if(a<minlen) {//preceeding dna is too small. 
     //TODO:could possibly merge for a big read here
-    if(justmp) {
+    if(_justmp) {
       mp.r1 = r1.mask();
       mp.r2 = r2;
     }
@@ -293,7 +293,7 @@ bool matePair::trimExternal(readPair& rp) {
 
   if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r2.l)) {
     found = true;
-    if(justmp) {
+    if(_justmp) {
       mp.r1 = rp.r1;      
       mp.r2 = rp.r2;
       if(a<rp.r1.l)
@@ -363,7 +363,7 @@ int checkRight(string & s1,string & adapter,int offset,int minoverlap,float simi
 int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp,bool jmp) {
   //  assert(readpair.r1.l==readpair.r2.l);
  clear();
-  justmp=jmp;
+  _justmp=jmp;
   preserve_mp=pmp;
   minoverlap=minovl;
   similarity=sim;
@@ -444,14 +444,14 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
       return(0);
     }
     else if(a1<(L1-minoverlap) && a2<minlen) {//r2 redundant
-      if(justmp) 
+      if(_justmp) 
 	mp=readPair(readpair.r1.window(0,a1),readpair.r2.mask()) ;
       else
 	se = readpair.r1.window(0,a1); 
       if(DEBUG>1) cerr << "CASE B"<<endl;
     }
     else if(a2<(L2-minoverlap) && a1<minlen) {//r1 redundant
-      if(justmp)
+      if(_justmp)
 	mp=readPair(readpair.r1.mask(),readpair.r2.window(0,a2));
       else
 	se = readpair.r2.window(0,a2);    
@@ -459,7 +459,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     }
     else if(a1>=(L1-minoverlap) && a2<minlen) {//obvious PE
       if(a1>=minlen && (L2-b2)>=minlen) {
-	if(justmp) {
+	if(_justmp) {
 	  mp=readPair(readpair.r1.window(0,a1),readpair.r2.mask()) ;
 	}
 	else {
@@ -471,7 +471,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     } 
     else if(a2>=(L2-minoverlap) && a1<minlen) {//obvious PE
       if(a2>=minlen && (L1-b1)>=minlen) {
-        if(justmp){
+        if(_justmp){
 	  mp=readPair(readpair.r1.mask(),readpair.r2.window(0,a2));
 	}
 	else{
@@ -517,58 +517,58 @@ nxtrimWriter::nxtrimWriter(string prefix,bool jmp,bool separate) {
 
 int nxtrimWriter::open(string prefix,bool jmp,bool separate) {
   if(prefix=="-")
-    return(open(jmp,separate));
+    die("bad output file name: "+prefix);
   n_mp=0;
   n_pe=0;
   n_se=0;
   n_unk=0;
-  justmp = jmp;
-
-  if(separate)     
+  _justmp = jmp;
+  _write_un=_write_mp=_write_se=_write_pe=true;
+  if(separate) {
     mp_out.open(prefix+"_R1.mp.fastq.gz", prefix+"_R2.mp.fastq.gz");
-  else     
-    mp_out.open(prefix+".mp.fastq.gz");
-
-  if(separate)    
     unknown_out.open(prefix+"_R1.unknown.fastq.gz",prefix+"_R2.unknown.fastq.gz");
-  else 
+  } 
+  else {
+    mp_out.open(prefix+".mp.fastq.gz");
     unknown_out.open(prefix+".unknown.fastq.gz");  
+  }
 
-  if(!justmp) {
+  if(!_justmp) {
     if(separate) pe_out.open(prefix+"_R1.pe.fastq.gz",prefix+"_R2.pe.fastq.gz");
     else  pe_out.open(prefix+".pe.fastq.gz");
     se_out.open(prefix+".se.fastq.gz");
+  }  
+  else    {
+    _write_se=_write_pe=false;
   }
   return(0);
-}
-
-nxtrimWriter::nxtrimWriter(bool jmp,bool separate) {
-  open(jmp,separate);
 }
 
 nxtrimWriter::nxtrimWriter() {}
 
-int nxtrimWriter::open(bool jmp,bool separate) {
+int nxtrimWriter::open() {
   n_mp=0;
   n_pe=0;
   n_se=0;
   n_unk=0;
-  justmp = jmp;
+  _justmp = true;
+  _write_un=_write_mp=true;
+  _write_se=_write_pe=false;
   mp_out.open("-");
-  pe_out.open("-");
   unknown_out.open("-");
-  se_out.open("-");
   return(0);
 }
 
 int nxtrimWriter::write(matePair m) {
-  n_mp+=mp_out.write(m.mp);
-  n_unk+=unknown_out.write(m.unknown);  
-  if(!justmp) {
-    n_pe+=pe_out.write(m.pe);
-    n_se+=se_out.write(m.se);  
-  }
-  if(DEBUG>0)      cerr << "Wrote: n_mp="<<n_mp<<" n_unk="<<n_unk<<" n_pe="<<n_pe<<" n_se="<<n_se<<endl;
+
+  if(_write_mp)  n_mp+=mp_out.write(m.mp);
+  if(_write_un)  n_unk+=unknown_out.write(m.unknown);  
+  if(_write_pe)  n_pe+=pe_out.write(m.pe);
+  if(_write_se)  n_se+=se_out.write(m.se);  
+
+
+  if(DEBUG>0)
+    cerr << "Wrote: n_mp="<<n_mp<<" n_unk="<<n_unk<<" n_pe="<<n_pe<<" n_se="<<n_se<<endl;
 
   return(0);
 }

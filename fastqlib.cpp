@@ -187,15 +187,18 @@ int fastqWriter::write(fqread & read) {
       read.print();
     }
     else{
-      if(gzwrite(fp,"@",1)==0) die("problem writing output");
-      if(gzwrite(fp,(char *)read.h.c_str(),read.h.size())==0) die("problem writing output");
-      if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
-      if( gzwrite(fp,(char *)read.s.c_str(),read.s.size())==0) die("problem writing output");
-      if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
-      if(    gzwrite(fp,(char *)read.l3.c_str(),read.l3.size())==0) die("problem writing output");
-      if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
-      if(    gzwrite(fp,(char *)read.q.c_str(),read.q.size())==0) die("problem writing output");
-      if(    gzwrite(fp,"\n",1)==0) die("problem writing output");
+      bool write_ok=true;
+      write_ok = write_ok && gzwrite(fp,"@",1)!=0;
+      write_ok = write_ok && gzwrite(fp,(char *)read.h.c_str(),read.h.size())!=0;
+      write_ok = write_ok && gzwrite(fp,"\n",1)!=0;
+      write_ok = write_ok && gzwrite(fp,(char *)read.s.c_str(),read.s.size())!=0;
+      write_ok = write_ok && gzwrite(fp,"\n",1)!=0;
+      write_ok = write_ok && gzwrite(fp,(char *)read.l3.c_str(),read.l3.size())!=0;
+      write_ok = write_ok && gzwrite(fp,"\n",1)!=0;
+      write_ok = write_ok && gzwrite(fp,(char *)read.q.c_str(),read.q.size())!=0;
+      write_ok = write_ok && gzwrite(fp,"\n",1)!=0;
+      if(!write_ok)
+	die("problem writing output");
     }
     return(1);
   }

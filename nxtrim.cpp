@@ -22,14 +22,14 @@ void usage() {
   cerr << "  -2 [ --r2 ] arg                 read 2 in fastq format (gzip allowed)"<<endl;
   cerr << "Allowed options:"<<endl;
   cerr << "  -O [ --output-prefix ] arg      output prefix"<<endl;
-  cerr << "  --stdout                        print trimmed reads to stdout"<<endl;
   cerr << "  --justmp                        just creates a the mp/unknown libraries (reads with adapter at the start will be completely N masked)"<<endl;
+  cerr << "  --stdout                        print trimmed reads to stdout (equivalent to justmp)"<<endl;
+  cerr << "  --stdout-mp                     print only known MP reads to stdout (good for scaffolding)"<<endl;
+  cerr << "  --stdout-un                     print only unknown reads to stdout"<<endl;
   cerr << "  --joinreads                     try to merge overhangs from R2 with R1 (default: no joining)"<<endl;
-  cerr << "  --norc                          do NOT reverse-complement mate-pair reads (use this if your reads are already in FR orientation)"<<endl;
+  cerr << "  --rf                            leave reads in RF orientation (or use this if your reads are already in FR orientation)"<<endl;
   cerr << "  --preserve-mp                   preserve MPs even when the corresponding PE has longer reads"<<endl;
   cerr << "  --ignorePF                      ignore chastity/purity filters in read headers"<<endl;
-  //    cerr << "  --mp                            just creates the mp library. Useful if you suspect a high level of contamination" <<endl;
-  //    cerr << "  --unknown                       just creates the unknown library"<<endl;
   cerr << "  --separate                      output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved."<<endl;
   cerr << "  -s, --similarity arg (=0.85)        The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )"<<endl;
   cerr << "  -v, --minoverlap arg (=12)          The minimum overlap to be considered for matching"<<endl;
@@ -46,6 +46,8 @@ void usage() {
 #define MP 6
 #define UNKNOWN 7
 #define SEPARATE 8
+#define STDOUT_MP 9
+#define STDOUT_UN 10
 
 int main(int argc,char **argv) {
   int c;
@@ -64,6 +66,8 @@ int main(int argc,char **argv) {
   bool rc = true;
   bool ignorePF = false;
   bool write_stdout=false;
+  bool write_stdout_mp=false;
+  bool write_stdout_un=false;
   bool hamming = true;//always use hamming.
   bool separate=false;
   static struct option loptions[] =    {
@@ -71,9 +75,11 @@ int main(int argc,char **argv) {
     {"r2",1,0,'2'},	
     {"output-prefix",1,0,'O'},	
     {"stdout",0,0,STDOUT},
+    {"stdout-mp",0,0,STDOUT_MP},
+    {"stdout-un",0,0,STDOUT_UN},
     {"justmp",0,0,JUSTMP},
     {"joinreads",0,0,JOINREADS},
-    {"norc",0,0,NORC},
+    {"rf",0,0,NORC},
     {"preserve-mp",0,0,PMP},
     {"ignorePF",0,0,IGNOREPF},
     {"mp",0,0,MP},
@@ -94,6 +100,8 @@ int main(int argc,char **argv) {
       case 'v': minoverlap = atoi(optarg); break;    
       case 'l': minlen = atoi(optarg); break;    
       case STDOUT: write_stdout=true; break;    
+      case STDOUT_MP: write_stdout_mp=true; break;    
+      case STDOUT_UN: write_stdout_un=true; break;    
       case JUSTMP:justmp=true; break;    
       case JOINREADS:joinreads=true; break;    
       case NORC:rc=false; break;    
@@ -107,16 +115,17 @@ int main(int argc,char **argv) {
     die("both --r1 and --r2 must be speicified");
   if(write_stdout && !prefix.empty())
     die("--stdout and -O are incompatible");
-  if(!write_stdout && prefix.empty() )
-    die("one of--stdout and -O must be specified");
+  if(!write_stdout && !write_stdout_mp && !write_stdout_un && prefix.empty() )
+    die("one of --stdout / --stdout-mp / --stdout-un / -O must be specified");
   if(preserve_mp&&justmp) 
     die("the --preserve_mp and --justmp flags are incompatible!");
-
-  if(write_stdout)  
-    if(justmp)
-      cerr << "Writing to stdout"<<endl;
-    else
-      die("--stdout can only be used with the --justmp flag");
+  if( (write_stdout+write_stdout_mp+write_stdout_un)>1)
+    die("only one of --stdout / --stdout-mp / --stdout-un may be specified!");
+    
+  if(write_stdout||write_stdout_mp||write_stdout_un) {
+    cerr << "Writing to stdout"<<endl;
+    justmp=true;
+  }
   else 
     cerr << "Output: " << prefix <<".*.fastq.gz"<<endl;
 
@@ -138,8 +147,11 @@ int main(int argc,char **argv) {
   bool trim_warn=true;
 
   nxtrimWriter out;
-  if(write_stdout) 
-    out.open("-",justmp,separate);
+  if(write_stdout||write_stdout_un||write_stdout_mp)  {
+    out.open();
+    if(write_stdout_un) out.setMP(false);
+    if(write_stdout_mp) out.setUN(false);
+  }
   else  
     out.open(prefix,justmp,separate);
 
