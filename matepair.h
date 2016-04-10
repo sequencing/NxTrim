@@ -29,7 +29,7 @@ class matePair {
   int trimUnknown();
   bool trimExternal(readPair & rp);
   int joinReads(fqread & r1,fqread & r2,fqread & output);
-  bool joinreads,use_hamming,preserve_mp,justmp;
+  bool joinreads,use_hamming,preserve_mp,_justmp;
   fqread se;
   readPair mp,pe,unknown;
   int resolve_overhang(fqread & r1, fqread & r2,int a,int b);
@@ -43,16 +43,15 @@ class nxtrimWriter {
 
  public:
   nxtrimWriter();
-  nxtrimWriter(string prefix,bool jmp,bool separate_read_files);
-  nxtrimWriter(bool jmp,bool separate);
+  nxtrimWriter(string prefix,bool jmp,bool separate_read_files=false);
   int open(string prefix,bool jmp,bool separate_read_files);
-  int open(bool jmp,bool separate);
+  int open();
+  bool setMP(bool val) {_write_mp=val;return(_write_mp);}
+  bool setUN(bool val) {_write_un=val;return(_write_un);}
 
   int  write(matePair m);
   int weird,n_mp,n_unk,n_se,n_pe;//counts for each virtual library
-  bool justmp;
-
- private:
+  bool _justmp,_write_mp,_write_se,_write_pe,_write_un;
   bool print_to_stdout;
   pairWriter mp_out;
   pairWriter pe_out;

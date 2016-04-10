@@ -17,16 +17,14 @@ make
 ```
 
 ####Usage
-Trim the data:
+
+Trimming and assembly with [Velvet](https://www.ebi.ac.uk/~zerbino/velvet/):
 ```
 nxtrim -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz -O sample 
-```
-
-Assemble with [Velvet](https://www.ebi.ac.uk/~zerbino/velvet/):
-```
 velveth output_dir 55 -short -fastq.gz sample.se.fastq.gz -shortPaired2 -fastq.gz sample.pe.fastq.gz -shortPaired3 -fastq.gz sample.mp.fastq.gz -shortPaired4 -fastq.gz sample.unknown.fastq.gz
 velvetg output_dir -exp_cov auto -cov_cutoff auto -shortMatePaired4 yes
 ```
+the above approach corresponds to the results in the NxTrim publication.
 
 Trimming and assembly with [SPAdes](http://bioinf.spbau.ru/spades):
 ```
@@ -36,7 +34,15 @@ spades.py -t 4 --hqmp1-12 sample.allmp.fastq.gz -o output_dir
 ```
 We concatenate the unknown/mp libraries for SPAdes.  SPAdes versions>3.1.0 seems to perform better without our virtual single/pe libraries hence we trim with the `--justmp` flag. 
 
-**Note:** We achieved good results using the above commands on the bacterial samples analysed in the NxTrim paper.  These had moderate coverage (<50X).  If you have very high coverage samples, it might be preferable to not use the "unknown" library at all or just treat it as a single-ended library, this will remove the risk of PE contaminants causing problems.
+**Note:** We achieved good results using the above commands on the bacterial samples analysed in the NxTrim paper.  These had modest coverage (<50X).  If you have very high coverage samples, it might be preferable to not use the "unknown" library at all or just treat it as a single-ended library, this will remove the risk of PE contaminants causing problems.
+
+Piping trimmed reads directly to an aligner:
+```
+nxtrim --stdout -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz | bwa mem EcMG.fna -p - > out.sam
+or
+nxtrim --stdout-mp -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz | bwa mem EcMG.fna -p - > out.sam
+```
+The first command pipes both unknown/MP reads to stdout, this is useful if you have a high quality reference to align to. The second only prints *known* MP reads, which is useful for scaffolding purposes.
 
 ####Output:
 
@@ -49,7 +55,7 @@ The default behaviour expects raw fastq files from a Nextera Mate-Pair library k
 
 ####Options:
 
-The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse orientation, this reverse-complementing can be disabled via the --norc flag.
+The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse (FR) orientation, if you wish to keep your reads as Reverse-Forward then use --rf flag.
 
 If you wish to generate pure mate-pair libraries (say for scaffolding), you can use the --justmp flag.  This will only generate the unknown and mp libraries.  Reads with an adapter occurring < minlength bp before the start will be completely N masked.
 

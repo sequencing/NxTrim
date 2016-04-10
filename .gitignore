@@ -3,6 +3,5 @@
 *.so
 mergeReads
 nxtrim
-test
 
 version.h

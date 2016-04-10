@@ -1,6 +1,10 @@
+2016.04.10
+*added --stdout-mp and --stdout-un functionality
+*changed the --norc flag to --rf
+
 2016.03.27
 *fixed a bug that occurs when comment field is empty issue #17
-	
+
 2016.02.27
 *fixed issue #15
 *removed BOOST dependencies
