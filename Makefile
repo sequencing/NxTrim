@@ -20,8 +20,8 @@ version.h:
 	echo '#define VERSION "$(VERSION)$(GIT_VERSION)"' > $@
 
 
-test: test.cpp fastqlib.o utilityfunc.o matepair.o
-	$(CXX) $(CFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o test   $(LFLAGS)
+unit_test: test.cpp fastqlib.o utilityfunc.o matepair.o
+	$(CXX) $(CFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o unit_test   $(LFLAGS)
 nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o version.h
 	$(CXX) $(CFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o -o nxtrim  $(LFLAGS)
 mergeReads: mergeReads.cpp fastqlib.o utilityfunc.o fastqlib.o githash.h version.h
@@ -32,6 +32,8 @@ fastqlib.o: fastqlib.cpp fastqlib.h utilityfunc.h
 	$(CXX) $(CFLAGS) -c fastqlib.cpp
 utilityfunc.o:  utilityfunc.cpp utilityfunc.h
 	$(CXX) $(CFLAGS) -c utilityfunc.cpp 
+test: nxtrim
+	bash example/run_test.sh
 clean:
 	rm *.o nxtrim test mergeReads version.h
 

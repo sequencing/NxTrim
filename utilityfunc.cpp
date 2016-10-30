@@ -26,7 +26,7 @@ int which_max(int *x,int n) {
 
 bool fileexists(string fname){
   ifstream ifile(fname.c_str());
-  return ifile;
+  return ifile.good();
 }
 
 void die(const string & err) {
