@@ -8,7 +8,7 @@ You should have received a copy of the BSD 2-Clause License along with this prog
 
 Some detailed assembly results for Nextera Mate-Pair data are available [here](https://github.com/sequencing/NxTrim/wiki/Bacterial-assembles-using-Nextera-Mate-pairs).
 
-###Installation
+##Installation
 
 ```
 git clone https://github.com/sequencing/NxTrim.git
