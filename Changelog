@@ -1,3 +1,6 @@
+2017.03.28
+*better error reporting for malformed reads
+
 2016.04.10
 *added --stdout-mp and --stdout-un functionality
 *changed the --norc flag to --rf
