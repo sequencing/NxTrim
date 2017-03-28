@@ -9,6 +9,7 @@ You should have received a copy of the BSD 2-Clause License along with this prog
 Some detailed assembly results for Nextera Mate-Pair data are available [here](https://github.com/sequencing/NxTrim/wiki/Bacterial-assembles-using-Nextera-Mate-pairs).
 
 ####Installation
+
 ```
 git clone https://github.com/sequencing/NxTrim.git
 cd NxTrim
@@ -19,6 +20,7 @@ make
 ####Usage
 
 Trimming and assembly with [Velvet](https://www.ebi.ac.uk/~zerbino/velvet/):
+
 ```
 nxtrim -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz -O sample 
 velveth output_dir 55 -short -fastq.gz sample.se.fastq.gz -shortPaired2 -fastq.gz sample.pe.fastq.gz -shortPaired3 -fastq.gz sample.mp.fastq.gz -shortPaired4 -fastq.gz sample.unknown.fastq.gz
@@ -27,6 +29,7 @@ velvetg output_dir -exp_cov auto -cov_cutoff auto -shortMatePaired4 yes
 the above approach corresponds to the results in the NxTrim publication.
 
 Trimming and assembly with [SPAdes](http://bioinf.spbau.ru/spades):
+
 ```
 nxtrim -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz -O sample --justmp
 cat sample.mp.fastq.gz sample.unknown.fastq.gz > sample.allmp.fastq.gz
@@ -37,6 +40,7 @@ We concatenate the unknown/mp libraries for SPAdes.  SPAdes versions>3.1.0 seems
 **Note:** We achieved good results using the above commands on the bacterial samples analysed in the NxTrim paper.  These had modest coverage (<50X).  If you have very high coverage samples, it might be preferable to not use the "unknown" library at all or just treat it as a single-ended library, this will remove the risk of PE contaminants causing problems.
 
 Piping trimmed reads directly to an aligner:
+
 ```
 nxtrim --stdout -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz | bwa mem EcMG.fna -p - > out.sam
 or
