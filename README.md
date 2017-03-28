@@ -17,7 +17,7 @@ make
 ./nxtrim
 ```
 
-###Usage
+### Usage
 
 Trimming and assembly with [Velvet](https://www.ebi.ac.uk/~zerbino/velvet/):
 
@@ -48,7 +48,7 @@ nxtrim --stdout-mp -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_
 ```
 The first command pipes both unknown/MP reads to stdout, this is useful if you have a high quality reference to align to. The second only prints *known* MP reads, which is useful for scaffolding purposes.
 
-###Output:
+### Output:
 
 The default behaviour expects raw fastq files from a Nextera Mate-Pair library kit in Reverse-Forward orientation.  Based on the location of the Nextera adapter sequence (if detected), nxtrim produces four different "virtual libraries":
 
@@ -57,7 +57,7 @@ The default behaviour expects raw fastq files from a Nextera Mate-Pair library k
 * se: single reads 
 * unknown: a library of read-pairs that are mostly large-insert mate-pair, but possibly contain a small proportion of paired end contaminants
 
-###Options:
+### Options:
 
 The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse (FR) orientation, if you wish to keep your reads as Reverse-Forward then use --rf flag.
 
@@ -67,13 +67,13 @@ If you wish to preserve mate-pair libraries whenever possible, the --preservemp 
 
 You can trade specificity/sensitivity of adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera adapter).  The defaults were well suited to bacteria in our testing.
 
-###Example data:
+### Example data:
 
 https://basespace.illumina.com/s/TXv32Ve6wTl9
 
 Free registration required.
 
-###References:
+### References:
 
 http://res.illumina.com/documents/products/technotes/technote_nextera_matepair_data_processing.pdf
 
