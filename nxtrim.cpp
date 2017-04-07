@@ -27,7 +27,7 @@ void usage() {
   cerr << "  --stdout-mp                     print only known MP reads to stdout (good for scaffolding)"<<endl;
   cerr << "  --stdout-un                     print only unknown reads to stdout"<<endl;
   cerr << "  --joinreads                     try to merge overhangs from R2 with R1 (default: no joining)"<<endl;
-  cerr << "  --rf                            leave reads in RF orientation (or use this if your reads are already in FR orientation)"<<endl;
+  cerr << "  --rf                            leave mate pair reads in RF orientation [by default are flipped into FR]"<<endl;
   cerr << "  --preserve-mp                   preserve MPs even when the corresponding PE has longer reads"<<endl;
   cerr << "  --ignorePF                      ignore chastity/purity filters in read headers"<<endl;
   cerr << "  --separate                      output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved."<<endl;
