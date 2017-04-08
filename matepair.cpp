@@ -384,12 +384,13 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
   fqread rc1 = readpair.r1.rc();
   fqread rc2 = readpair.r2.rc();
 
-  //check for double adapter.
-  if(readpair.r1.s.find(adapter1,a1+adapterj.size())<readpair.r1.s.size()||
-     readpair.r1.s.find(adapter2,a1+adapterj.size())<readpair.r1.s.size()||
-     readpair.r2.s.find(adapter1,a2+adapterj.size())<readpair.r2.s.size()||
-     readpair.r2.s.find(adapter2,a2+adapterj.size())<readpair.r2.s.size())
-    return(1);
+  //check for double adapters
+  bool second_adapter_occurring_after_primary = readpair.r1.s.find(adapter1,a1+adapterj.size()) < readpair.r1.s.size()||readpair.r1.s.find(adapter2,a1+adapterj.size()) < readpair.r1.s.size()||readpair.r2.s.find(adapter1,a2+adapterj.size()) < readpair.r2.s.size()||readpair.r2.s.find(adapter2,a2+adapterj.size()) < readpair.r2.s.size();
+
+  bool second_adapter_occurring_before_primary=(a1>0&&readpair.r1.s.substr(0,a1).find(adapter1)<a1) || (a1>0&&readpair.r1.s.substr(0,a1).find(adapter2)<a1) || (a2>0&&readpair.r2.s.substr(0,a2).find(adapter1)<a2) ||(a2>0 && readpair.r2.s.substr(0,a2).find(adapter2) < a2);
+
+    if(second_adapter_occurring_after_primary||second_adapter_occurring_before_primary) return(1);
+
 
   int b1 = a1+adapterj.size();
   int b2 = a2+adapterj.size();

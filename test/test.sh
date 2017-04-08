@@ -4,30 +4,30 @@ r2=EcMG1_ATGTCA_L001_R2_001.fastq.gz
 ref=EcMG.fna
 if [ ! -f $ref ]
 then
-    wget https://s3-eu-west-1.amazonaws.com/nxtrim-examples/bacteria/${ref}
+    curl -O https://s3-eu-west-1.amazonaws.com/nxtrim-examples/bacteria/${ref}
 fi
 if [ ! -f $r1 ]
 then
-    wget https://s3-eu-west-1.amazonaws.com/nxtrim-examples/bacteria/${r1}
+    curl -O https://s3-eu-west-1.amazonaws.com/nxtrim-examples/bacteria/${r1}
 fi
 if [ ! -f $r2 ]
 then
-    wget https://s3-eu-west-1.amazonaws.com/nxtrim-examples/bacteria/${r2}
+    curl -O https://s3-eu-west-1.amazonaws.com/nxtrim-examples/bacteria/${r2}
 fi
 bwa index $ref
 
 #test stdout and alignment
 out=EcMG.bam
-../nxtrim --stdout -1 $r1 -2 $r2 | bwa mem $ref -p - | samtools view -Ob -o $out
+../nxtrim --stdout -1 $r1 -2 $r2 | bwa mem  -p $ref - | samtools view - -b -o $out
 
 out=EcMG.rf.bam
-../nxtrim --rf --stdout -1 $r1 -2 $r2 | bwa mem $ref -p - | samtools view -Ob -o $out
+../nxtrim --rf --stdout -1 $r1 -2 $r2 | bwa mem  -p $ref - | samtools view -b -o $out
 
 out=EcMG.mp.bam
-../nxtrim --stdout-mp -1 $r1 -2 $r2 | bwa mem $ref -p - | samtools view -Ob -o $out
+../nxtrim --stdout-mp -1 $r1 -2 $r2 | bwa mem  -p $ref - | samtools view -b -o $out
 
 out=EcMG.un.bam
-../nxtrim --stdout-un -1 $r1 -2 $r2 | bwa mem $ref -p - | samtools view -Ob -o $out
+../nxtrim --stdout-un -1 $r1 -2 $r2 | bwa mem  -p $ref - | samtools view -b -o $out
 
 
 ##assemble with velvet
