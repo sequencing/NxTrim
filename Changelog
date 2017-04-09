@@ -1,3 +1,6 @@
+2017.04.08
+*improved detection of reads where two copies of the Nextera junction adapter are present
+	
 2017.03.28
 *better error reporting for malformed reads
 
