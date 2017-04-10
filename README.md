@@ -1,4 +1,4 @@
-nxtrim: Software to remove Nextera Mate Pair adapters and categorise reads according to the orientation implied by the adapter location.  This software is not commercially supported.
+nxtrim: Software to remove Nextera Mate Pair junction adapters and categorise reads according to the orientation implied by the adapter location.  This software is not commercially supported.
 
 Copyright (c) 2016, Illumina, Inc. All rights reserved.
 
@@ -67,6 +67,22 @@ If you wish to generate pure mate-pair libraries (say for scaffolding), you can 
 If you wish to preserve mate-pair libraries whenever possible, the --preservemp flag may be useful.  This will always keep the mate-pair library *unless* a read generated would be <minlength, in which case it will generate a PE.
 
 You can trade specificity/sensitivity of adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera adapter).  The defaults were well suited to bacteria in our testing.
+
+### Adapter matching:
+
+We implement a very simple approach. Each read is searched for the junction adapter (`CTGTCTCTTATACACATCT`) and its reverse complement (`AGATGTGTATAAGAGACAG`) based on Hamming distance, the entire junction being `CTGTCTCTTATACACATCT`+`AGATGTGTATAAGAGACAG`. If a match to either side of the junction is found then the entire 38bp juncton is clipped. This means the algorithm can tolerate an indel error in one of the sides of the junction, but not both.
+
+eg. this will be caught:
+
+```
+CTGTCTCTTATACACATCTAGATGTGTATAAGAGAC-AG
+```
+
+but not this:
+
+```
+CTG-TCTCTTATACACATCTAGATGTGTATAAGAGAC-AG
+```
 
 ### Example data:
 
