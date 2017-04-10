@@ -75,13 +75,13 @@ We implement a very simple approach. Each read is searched for the junction adap
 eg. this will be caught:
 
 ```
-CTGTCTCTTATACACATCTAGATGTGTATAAGAGAC-AG
+CTGTCTCT-TA-TACACATCTAGATGTGTATAAGAGACAG
 ```
 
 but not this:
 
 ```
-CTG-TCTCTTATACACATCTAGATGTGTATAAGAGAC-AG
+CTGTCTCT-TA-TACACATCTAGATGT-GTATAAGAGACAG
 ```
 
 ### Example data:
