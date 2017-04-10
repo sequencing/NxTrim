@@ -1,4 +1,4 @@
-nxtrim: Software to remove Nextera Mate Pair adapters and categorise reads according to the orientation implied by the adapter location.  This software is not commercially supported.
+nxtrim: Software to remove Nextera Mate Pair linkers and Illumina P1 and P2 adapters and categorise reads according to the orientation implied by the linker location.  This software is not commercially supported.
 
 Copyright (c) 2016, Illumina, Inc. All rights reserved.
 
@@ -51,22 +51,22 @@ The first command pipes both unknown/MP reads to stdout, this is useful if you h
 
 ### Output:
 
-The default behaviour expects raw fastq files from a Nextera Mate-Pair library kit in Reverse-Forward orientation.  Based on the location of the Nextera adapter sequence (if detected), nxtrim produces four different "virtual libraries":
+The default behaviour expects raw fastq files from a Nextera Mate-Pair library kit in Reverse-Forward orientation.  Based on the location of the Nextera linker sequence (if detected), nxtrim produces four different "virtual libraries":
 
-* mp: read pairs that are large insert-size mate-pairs
-* pe: read pairs that are short insert-sze paired-end reads
-* se: single reads 
+* mp: read pairs that are large insert-size mate-pairs, both mates will be reverse-complemented by nxtrim (from RF to FR) unless --rf commandline option is used
+* pe: read pairs that are short insert-size paired-end reads (all reads lacking any of the Nextera fwd+revcomp, fwd or revcomp linker sequences)
+* se: single reads (reads having no R1 or R2 counterpart)
 * unknown: a library of read-pairs that are mostly large-insert mate-pair, but possibly contain a small proportion of paired end contaminants
 
 ### Options:
 
-The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse (FR) orientation, if you wish to keep your reads as Reverse-Forward then use --rf flag.
+By default the trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse (FR) orientation like common paired-end reads. If you wish to keep your reads as Reverse-Forward then use --rf flag.
 
-If you wish to generate pure mate-pair libraries (say for scaffolding), you can use the --justmp flag.  This will only generate the unknown and mp libraries.  Reads with an adapter occurring < minlength bp before the start will be completely N masked.
+If you wish to generate pure mate-pair libraries (say for scaffolding), you can use the --justmp flag. This will only generate two FASTQ files: one with Mate Pair reads and the other named 'unknown'. Reads with Nextera linker occurring < minlength bp before the start will be completely N masked.
 
-If you wish to preserve mate-pair libraries whenever possible, the --preservemp flag may be useful.  This will always keep the mate-pair library *unless* a read generated would be <minlength, in which case it will generate a PE.
+If you wish to preserve mate-pair libraries whenever possible, the --preservemp flag may be useful. This will always keep the mate-pair library *unless* a read generated would be <minlength, in which case it will generate a PE.
 
-You can trade specificity/sensitivity of adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera adapter).  The defaults were well suited to bacteria in our testing.
+You can trade specificity/sensitivity of linker/adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera linker).  The defaults were well suited to bacteria in our testing.
 
 ### Example data:
 
