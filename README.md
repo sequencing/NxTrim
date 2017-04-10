@@ -51,22 +51,22 @@ The first command pipes both unknown/MP reads to stdout, this is useful if you h
 
 ### Output:
 
-The default behaviour expects raw fastq files from a Nextera Mate-Pair library kit in Reverse-Forward orientation.  Based on the location of the Nextera adapter sequence (if detected), nxtrim produces four different "virtual libraries":
+The default behaviour expects raw fastq files from a Nextera Mate-Pair library kit in Reverse-Forward orientation.  Based on the location of the Nextera junction adapter  (if detected), nxtrim produces four different "virtual libraries":
 
-* mp: read pairs that are large insert-size mate-pairs
-* pe: read pairs that are short insert-sze paired-end reads
-* se: single reads 
+* mp: read pairs that are large insert-size mate-pairs, both mates will be reverse-complemented by nxtrim (from RF to FR) unless --rf commandline option is used
+* pe: read pairs that are short insert-size paired-end reads due to the junction adapter occurring early in a read
+* se: single reads (reads having no R1 or R2 counterpart)
 * unknown: a library of read-pairs that are mostly large-insert mate-pair, but possibly contain a small proportion of paired end contaminants
 
 ### Options:
 
 The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse (FR) orientation, if you wish to keep your reads as Reverse-Forward then use --rf flag.
 
-If you wish to generate pure mate-pair libraries (say for scaffolding), you can use the --justmp flag.  This will only generate the unknown and mp libraries.  Reads with an adapter occurring < minlength bp before the start will be completely N masked.
+If you wish to generate pure mate-pair libraries (say for scaffolding), you can use the --justmp flag.  This will only generate the unknown and mp libraries.  Reads with a junction adapter occurring < minlength bp before the start will be completely N masked.
 
 If you wish to preserve mate-pair libraries whenever possible, the --preservemp flag may be useful.  This will always keep the mate-pair library *unless* a read generated would be <minlength, in which case it will generate a PE.
 
-You can trade specificity/sensitivity of adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera adapter).  The defaults were well suited to bacteria in our testing.
+You can trade specificity/sensitivity of junction adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera junction adapter).  The defaults were well suited to bacteria in our testing.
 
 ### Adapter matching:
 
