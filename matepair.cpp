@@ -68,6 +68,8 @@ int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
     return(mini);
 }
 
+//smith-waterman alignment code and scoring was shameless taken from Heng Li's trimadap
+//https://github.com/lh3/trimadap
 void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
 {
     int i, j, k;
@@ -79,27 +81,36 @@ void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
     for (j = 0; j < 5; ++j) mat[k++] = 0;
 }
 
-int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,int score)
+int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,int score,int8_t mat[25])
 {
     int sa=1;
     int sb=2;
     int go = 1, ge = 3;    
-    int8_t mat[25];
-    ta_opt_set_mat(sa,sb,mat);    
-    int min_len=8;
-    kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART|(minoverlap * sa), 0);
-    
-    if(r.score<score)
+//    ta_opt_set_mat(sa, sb, mat);
+    kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART|(8*sa), 0);
+
+    if(DEBUG>2)
+    {
+	cerr << "score = "<<r.score<<endl;
+	cerr << "(r.tb,r.te) = ("<<r.tb<<","<<r.te<<")"<<endl;    	
+    }
+    assert(r.tb!=-1);
+    assert(r.te!=-1);
+    if(r.score<score || (r.te-r.tb)<minoverlap )
     {
 	return tlen;
     }
     else
     {
-	assert(	r.tb >= 0);
-	assert(	r.tb < tlen);
-	return r.tb;
+	if(r.tb<=tlen)
+	{
+	    return(r.te-qlen);
+	}
+	else
+	{
+	    return(r.tb);
+	}
     }
-	    
 }
 
 int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_hamming)
@@ -108,17 +119,6 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     unsigned  int L2 = adapter1.size();
     //  cerr << L1 << " " << L2 << endl;
 
-    adapter1_sw=(uint8_t *)malloc(adapter1.length());
-    for(size_t i=0;i<adapter1.length();i++)
-    {
-	adapter1_sw[i]=seq_nt4_table[adapter1[i]];
-    }
-    
-    adapter2_sw=(uint8_t *)malloc(adapter2.length());    
-    for(size_t i=0;i<adapter2.length();i++)
-    {
-	adapter2_sw[i]=seq_nt4_table[adapter2[i]];
-    }
     
     unsigned  int perfect;
     //first half of adapter
@@ -134,7 +134,8 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     {
 	return(perfect-L2);      
     }
-    
+
+    //if we are not using hamming matching, we need to convert the read into ksw useable format
     uint8_t *s_tmp;
     if(!use_hamming)
     {
@@ -153,13 +154,13 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     }
     else
     {
-	a = sw_match(s_tmp,s.length(),adapter1_sw,adapter1.length(),minoverlap,similarity);
+	a = sw_match(s_tmp,s.length(),adapter1_sw,adapter1.length(),minoverlap,similarity,sw_mat);
     }
 
 
     if(a<(int)L1)
     {
-	if(!use_hamming)    free(s_tmp);	
+	if(!use_hamming) free(s_tmp);	
 	return a;
     }
 
@@ -170,7 +171,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     }
     else
     {
-	a = sw_match(s_tmp,s.length(),adapter2_sw,adapter2.length(),minoverlap,similarity);
+	a = sw_match(s_tmp,s.length(),adapter2_sw,adapter2.length(),minoverlap,similarity,sw_mat);
     }
 
 
@@ -297,6 +298,19 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
 
 matePair::matePair()
 {
+    ta_opt_set_mat(1,2,sw_mat);
+    adapter1_sw=(uint8_t *)malloc(adapter1.length());
+    for(size_t i=0;i<adapter1.length();i++)
+    {
+	adapter1_sw[i]=seq_nt4_table[adapter1[i]];
+    }
+    
+    adapter2_sw=(uint8_t *)malloc(adapter2.length());    
+    for(size_t i=0;i<adapter2.length();i++)
+    {
+	adapter2_sw[i]=seq_nt4_table[adapter2[i]];
+    }
+    
 }
 
 matePair::matePair(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp,bool jmp)
@@ -490,7 +504,6 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     minlen=ml;
     joinreads=jr;
     use_hamming=uh;
-    min_sw_score=14;  
     int L1 = readpair.r1.l;
     int L2 = readpair.r2.l;
     if(L1<minlen||L2<minlen) {
@@ -501,8 +514,6 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     int a1 = findAdapter(readpair.r1.s, minoverlap, similarity,use_hamming);
     int a2 = findAdapter(readpair.r2.s, minoverlap, similarity,use_hamming);
 
-    free(adapter1_sw);
-    free(adapter2_sw);
     fqread rc1 = readpair.r1.rc();
     fqread rc2 = readpair.r2.rc();
 

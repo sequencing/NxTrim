@@ -193,7 +193,9 @@ fastqWriter::fastqWriter()
 fastqWriter::~fastqWriter()
 {
     if(fp)
-	assert(Z_OK==gzclose(fp));
+    {
+	gzclose(fp);	
+    }
 }
 
 fastqWriter::fastqWriter(string fname)

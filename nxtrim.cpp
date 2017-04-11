@@ -72,7 +72,7 @@ int main(int argc,char **argv) {
   bool write_stdout_un=false;
   bool hamming = true;
   bool separate=false;
-  float sw_score = 14;
+  float sw_score = 12;
   static struct option loptions[] =    {
     {"r1",1,0,'1'},	
     {"r2",1,0,'2'},	
