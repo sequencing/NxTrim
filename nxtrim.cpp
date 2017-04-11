@@ -31,9 +31,11 @@ void usage() {
   cerr << "  --preserve-mp                   preserve MPs even when the corresponding PE has longer reads"<<endl;
   cerr << "  --ignorePF                      ignore chastity/purity filters in read headers"<<endl;
   cerr << "  --separate                      output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved."<<endl;
-  cerr << "  -s, --similarity arg (=0.85)        The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )"<<endl;
-  cerr << "  -v, --minoverlap arg (=12)          The minimum overlap to be considered for matching"<<endl;
-  cerr << "  -l, --minlength arg (=21)           The minimum read length to output (smaller reads will be filtered)"<<endl;
+  cerr <<
+"  -s, --similarity arg (=0.85)    The minimum similarity between strings to be considered a match\n                                   For hamming:   ceiling( (1-similarity) * string_length )\n                                   For SW:        sw_score / min(target_alignment_length,query_alignment_length)"<<endl;
+  cerr << "  -v, --minoverlap arg (=12       The minimum overlap to be considered for matching"<<endl;
+  cerr << "  -l, --minlength arg (=21)       The minimum read length to output (smaller reads will be filtered)"<<endl;
+  cerr << "  -w, --smith-waterman            Use Smith-Waterman alignmnent rather than simple Hamming matching"<<endl;
   exit(0);
 }
 
@@ -68,8 +70,9 @@ int main(int argc,char **argv) {
   bool write_stdout=false;
   bool write_stdout_mp=false;
   bool write_stdout_un=false;
-  bool hamming = true;//always use hamming.
+  bool hamming = true;
   bool separate=false;
+  
   static struct option loptions[] =    {
     {"r1",1,0,'1'},	
     {"r2",1,0,'2'},	
@@ -85,12 +88,13 @@ int main(int argc,char **argv) {
     {"mp",0,0,MP},
     {"unknown",0,0,UNKNOWN},
     {"separate",0,0,SEPARATE},
+    {"smith-waterman",0,0,'w'},    
     {"similarity",1,0,'s'},
     {"minoverlap",1,0,'v'},
     {"minlength",1,0,'l'},
     {0,0,0,0}
   };
-  while ((c = getopt_long(argc, argv, "1:2:O:s:v:l:",loptions,NULL)) >= 0) {  
+  while ((c = getopt_long(argc, argv, "1:2:O:s:v:l:w",loptions,NULL)) >= 0) {  
     switch (c)
       {
       case '1': r1 = optarg; break;
@@ -107,7 +111,8 @@ int main(int argc,char **argv) {
       case NORC:rc=false; break;    
       case PMP:preserve_mp=true; break;    
       case IGNOREPF:ignorePF=true; break;    
-      case SEPARATE:separate=true; break;    
+      case SEPARATE:separate=true; break;
+      case 'w':hamming=false; break;
       default: die("Unrecognised argument");
       }
   }
@@ -122,12 +127,15 @@ int main(int argc,char **argv) {
   if( (write_stdout+write_stdout_mp+write_stdout_un)>1)
     die("only one of --stdout / --stdout-mp / --stdout-un may be specified!");
     
-  if(write_stdout||write_stdout_mp||write_stdout_un) {
-    cerr << "Writing to stdout"<<endl;
-    justmp=true;
+  if(write_stdout||write_stdout_mp||write_stdout_un)
+  {
+      cerr << "Writing to stdout"<<endl;
+      justmp=true;
   }
-  else 
-    cerr << "Output: " << prefix <<".*.fastq.gz"<<endl;
+  else
+  {
+      cerr << "Output: " << prefix <<".*.fastq.gz"<<endl;
+  }
 
   cerr << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
   if(preserve_mp) cerr<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
@@ -154,15 +162,17 @@ int main(int argc,char **argv) {
   }
   else  
     out.open(prefix,justmp,separate);
-
   int se_only = 0;
-  while(infile.next(p)) {
+  while(infile.next(p))
+  {
 
-    if(p.r1.l!=p.r2.l && trim_warn) {
+    if(p.r1.l!=p.r2.l && trim_warn)
+    {
       cerr << "WARNING: reads with differing lengths. Has this data already been trimmed?"<<endl;
       trim_warn=false;
     }
-    if((!p.r1.filtered && !p.r2.filtered)||ignorePF) {
+    if((!p.r1.filtered && !p.r2.filtered)||ignorePF)
+    {
       bool weird=m.build(p,minoverlap,similarity,minlen,joinreads,hamming,preserve_mp,justmp);
       nweird+=weird;
       if(!weird) {

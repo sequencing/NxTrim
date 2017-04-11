@@ -3,10 +3,15 @@
 #include "math.h"
 #include "stdint.h"
 
+extern "C" {
+#include "ksw.h"
+}
+
 int hamming(string & s1,string & s2,int offset1,int offset2,int L,int maxd);
 int overlap(string & s1,string & s2,int minoverlap,float similarity);
 int partial_match(string & s1,string & a,int minoverlap,int maxdist);
-int findAdapter(string & s,int minoverlap,float similarity,bool hamming);
+int sw_match(uint8_t *target,int slen,uint8_t *query,int qlen,int minoverlap,int score,int8_t mat[25]);
+
 
 class levenshtein {
  public:
@@ -24,7 +29,9 @@ class matePair {
   public:
   matePair(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming,bool preserve_mp,bool jjmp);
   matePair();
+  ~matePair();  
   int build(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming,bool preserve_mp,bool jjmp);
+  int findAdapter(string & s,int minoverlap,float similarity,bool hamming);  
   int clear();
   int trimUnknown();
   bool trimExternal(readPair & rp);
@@ -36,6 +43,10 @@ class matePair {
   unsigned int ham_align(string & s1,string & s2);
   int minoverlap,  minlen;
   float similarity;
+
+  //stuff for ksw
+  uint8_t *adapter1_sw,*adapter2_sw;
+  int8_t sw_mat[25];  
 };
 
 //handles the output for nxtrim (which reads go to which file etc)
