@@ -31,11 +31,11 @@ void usage() {
   cerr << "  --preserve-mp                   preserve MPs even when the corresponding PE has longer reads"<<endl;
   cerr << "  --ignorePF                      ignore chastity/purity filters in read headers"<<endl;
   cerr << "  --separate                      output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved."<<endl;
-  cerr << "  -s, --similarity arg (=0.85)    The minimum similarity between strings to be considered a match.  Where hamming_distance  <=  ceiling( (1-similarity) * string_length )"<<endl;
+  cerr <<
+"  -s, --similarity arg (=0.85)    The minimum similarity between strings to be considered a match\n                                   For hamming:   ceiling( (1-similarity) * string_length )\n                                   For SW:        sw_score / min(target_alignment_length,query_alignment_length)"<<endl;
   cerr << "  -v, --minoverlap arg (=12       The minimum overlap to be considered for matching"<<endl;
   cerr << "  -l, --minlength arg (=21)       The minimum read length to output (smaller reads will be filtered)"<<endl;
   cerr << "  -w, --smith-waterman            Use Smith-Waterman alignmnent rather than simple Hamming matching"<<endl;
-  cerr << "  -x, --smith-waterman-score      minimum score for an SW match (higher: less sensivity, lower: mor sensitivity))"<<endl;    
   exit(0);
 }
 
@@ -72,7 +72,7 @@ int main(int argc,char **argv) {
   bool write_stdout_un=false;
   bool hamming = true;
   bool separate=false;
-  float sw_score = 12;
+  
   static struct option loptions[] =    {
     {"r1",1,0,'1'},	
     {"r2",1,0,'2'},	
@@ -94,7 +94,7 @@ int main(int argc,char **argv) {
     {"minlength",1,0,'l'},
     {0,0,0,0}
   };
-  while ((c = getopt_long(argc, argv, "1:2:O:s:v:l:x:w",loptions,NULL)) >= 0) {  
+  while ((c = getopt_long(argc, argv, "1:2:O:s:v:l:w",loptions,NULL)) >= 0) {  
     switch (c)
       {
       case '1': r1 = optarg; break;
@@ -113,7 +113,6 @@ int main(int argc,char **argv) {
       case IGNOREPF:ignorePF=true; break;    
       case SEPARATE:separate=true; break;
       case 'w':hamming=false; break;
-      case 'x':sw_score=atof(optarg); break;
       default: die("Unrecognised argument");
       }
   }
@@ -163,10 +162,6 @@ int main(int argc,char **argv) {
   }
   else  
     out.open(prefix,justmp,separate);
-  if(!hamming)
-  {
-      similarity=sw_score;
-  }
   int se_only = 0;
   while(infile.next(p))
   {

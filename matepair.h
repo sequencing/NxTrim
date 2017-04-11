@@ -45,7 +45,6 @@ class matePair {
   float similarity;
 
   //stuff for ksw
-  int min_sw_score;
   uint8_t *adapter1_sw,*adapter2_sw;
   int8_t sw_mat[25];  
 };

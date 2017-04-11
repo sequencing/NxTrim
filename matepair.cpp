@@ -81,22 +81,26 @@ void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
     for (j = 0; j < 5; ++j) mat[k++] = 0;
 }
 
-int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,int score,int8_t mat[25])
+int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,float min_similarity,int8_t mat[25])
 {
     int sa=1;
     int sb=2;
     int go = 1, ge = 3;    
 //    ta_opt_set_mat(sa, sb, mat);
     kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART|(8*sa), 0);
+    int substring_length = r.qe - r.qb < r.te - r.tb? r.qe - r.qb : r.te - r.tb;
+//    diff = (double)(k * opt->sa - r.score) / opt->sb / k; //lh3's diff measure
+    float sim = float(r.score)/((float)substring_length*sa);
 
     if(DEBUG>2)
     {
 	cerr << "score = "<<r.score<<endl;
+	cerr << "similarity = "<<sim<<endl;	
 	cerr << "(r.tb,r.te) = ("<<r.tb<<","<<r.te<<")"<<endl;    	
     }
     assert(r.tb!=-1);
     assert(r.te!=-1);
-    if(r.score<score || (r.te-r.tb)<minoverlap )
+    if(sim<min_similarity || (r.te-r.tb)<minoverlap )
     {
 	return tlen;
     }
@@ -680,7 +684,8 @@ int nxtrimWriter::open(string prefix,bool jmp,bool separate) {
 
 nxtrimWriter::nxtrimWriter() {}
 
-int nxtrimWriter::open() {
+int nxtrimWriter::open()
+{
     n_mp=0;
     n_pe=0;
     n_se=0;

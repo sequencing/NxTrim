@@ -64,3 +64,4 @@ if __name__ == "__main__":
         x.sort()
         print k.ljust(9," "),("%d"%d[k]).rjust(12," "),("%d"%x[len(x)/2]).rjust(20," ")
 
+    print "\nRF/(FR+RF) = %f"%(d['RF']/float(d['RF']+d['FR']))
