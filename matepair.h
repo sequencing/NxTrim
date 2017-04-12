@@ -9,8 +9,8 @@ extern "C" {
 
 int hamming(string & s1,string & s2,int offset1,int offset2,int L,int maxd);
 int overlap(string & s1,string & s2,int minoverlap,float similarity);
-int partial_match(string & s1,string & a,int minoverlap,int maxdist);
-int sw_match(uint8_t *target,int slen,uint8_t *query,int qlen,int minoverlap,int score,int8_t mat[25]);
+
+
 
 
 class levenshtein {
@@ -60,7 +60,7 @@ class nxtrimWriter {
   bool setMP(bool val) {_write_mp=val;return(_write_mp);}
   bool setUN(bool val) {_write_un=val;return(_write_un);}
 
-  int  write(matePair m);
+  int  write(matePair & m);
   int weird,n_mp,n_unk,n_se,n_pe;//counts for each virtual library
   bool _justmp,_write_mp,_write_se,_write_pe,_write_un;
   bool print_to_stdout;

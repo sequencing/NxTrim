@@ -143,7 +143,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     uint8_t *s_tmp;
     if(!use_hamming)
     {
-	s_tmp = (uint8_t *)malloc(s.length());
+	s_tmp = (uint8_t *)malloc(s.length()+1);
 	for(int i=0;i<s.length();i++)
 	{
 	    s_tmp[i]=seq_nt4_table[s[i]];
@@ -304,29 +304,29 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
 matePair::matePair()
 {
     ta_opt_set_mat(1,2,sw_mat);
-    adapter1_sw=(uint8_t *)malloc(adapter1.length());
+    adapter1_sw=(uint8_t *)malloc(adapter1.length()+1);
     for(size_t i=0;i<adapter1.length();i++)
     {
 	adapter1_sw[i]=seq_nt4_table[adapter1[i]];
     }
     
-    adapter2_sw=(uint8_t *)malloc(adapter2.length());    
+    adapter2_sw=(uint8_t *)malloc(adapter2.length()+1);    
     for(size_t i=0;i<adapter2.length();i++)
     {
 	adapter2_sw[i]=seq_nt4_table[adapter2[i]];
-    }
-    
+    }    
 }
 
-matePair::matePair(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp,bool jmp)
-{
-    build(readpair,minovl,sim,ml,jr,uh,pmp,jmp);
-}
+//this is not redundant.
+// matePair::matePair(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp,bool jmp)
+// {
+//     build(readpair,minovl,sim,ml,jr,uh,pmp,jmp);
+// }
 
 matePair::~matePair()
 {
-    // free(adapter1_sw);
-    // free(adapter2_sw);
+    free(adapter1_sw);
+    free(adapter2_sw);
 }
 
 int matePair::clear() {
@@ -337,6 +337,7 @@ int matePair::clear() {
     unknown.r1.clear();
     unknown.r2.clear();
     se.clear();
+    
     return(0);
 }
 
@@ -487,21 +488,9 @@ int checkRight(string & s1,string & adapter,int offset,int minoverlap,float simi
 
 //int matePair::build(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming) {
 int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp,bool jmp)
-{ 
-    adapter1_sw=(uint8_t *)malloc(adapter1.length());
-    for(size_t i=0;i<adapter1.length();i++)
-    {
-	adapter1_sw[i]=seq_nt4_table[adapter1[i]];
-    }
-    
-    adapter2_sw=(uint8_t *)malloc(adapter2.length());    
-    for(size_t i=0;i<adapter2.length();i++)
-    {
-	adapter2_sw[i]=seq_nt4_table[adapter2[i]];
-    }
-   
-    //  assert(readpair.r1.l==readpair.r2.l);
+{
     clear();
+
     _justmp=jmp;
     preserve_mp=pmp;
     minoverlap=minovl;
@@ -708,7 +697,7 @@ int nxtrimWriter::open()
     return(0);
 }
 
-int nxtrimWriter::write(matePair m) {
+int nxtrimWriter::write(matePair & m) {
 
     if(_write_mp)  n_mp+=mp_out.write(m.mp);
     if(_write_un)  n_unk+=unknown_out.write(m.unknown);  
