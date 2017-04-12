@@ -265,7 +265,8 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
     if(DEBUG>0)  cerr << "Resolving overhang"<<endl;
     fqread tmp1 = r1.window(b,r1.l);
     fqread tmp2 = r1.window(b,r1.l).rc();
-    if(DEBUG>1) {
+    if(DEBUG>1)
+    {
 	cerr << r2.s <<endl;;
 	cerr << tmp2.s << endl;
     }
@@ -510,8 +511,17 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     use_hamming=uh;
     int L1 = readpair.r1.l;
     int L2 = readpair.r2.l;
-    if(L1<minlen||L2<minlen) {
-	cerr << "readlength < minlenght"<<endl;
+    if(L1<minlen||L2<minlen)
+    {
+	cerr << "WARNING: read with length < minimum length ("<<minlen<<"). Will discard this read pair:"<<endl;
+	cerr << "@" << readpair.r1.h <<endl;
+	cerr  << readpair.r1.s <<endl;
+	cerr  << readpair.r1.l3 <<endl;
+	cerr  << readpair.r1.q <<endl;		
+	cerr << "@" << readpair.r2.h <<endl;
+	cerr  << readpair.r2.s <<endl;
+	cerr  << readpair.r2.l3 <<endl;
+	cerr  << readpair.r2.q <<endl;		
 	return(0);
     }
 

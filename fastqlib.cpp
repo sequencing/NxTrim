@@ -162,7 +162,7 @@ void fqread::print()
     {
 	cout << "@"<<h << endl;
 	cout << s << endl;
-	cout <<l3 << endl;
+	cout << l3 << endl;
 	cout << q << endl;
     }
 }
