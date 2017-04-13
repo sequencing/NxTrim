@@ -150,9 +150,25 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
 	    s_tmp[i]=seq_nt4_table[s[i]];
 	}
     }
+
+    int a;//this is the start location of the adapter
+
+    //approximate match to entire adapter
+    if(use_hamming)
+    {
+	a = partial_match(s,adapterj,minoverlap,similarity);      
+    }
+    else
+    {
+	a = sw_match(s_tmp,s.length(),adapterj_sw,adapterj.length(),minoverlap,similarity,sw_mat);
+    }
+    if(a<(int)L1)
+    {
+	if(!use_hamming) free(s_tmp);	
+	return a;
+    }
     
     //approximate match to first half
-    int a;
     if(use_hamming)
     {
 	a = partial_match(s,adapter1,minoverlap,similarity);      
@@ -161,8 +177,6 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     {
 	a = sw_match(s_tmp,s.length(),adapter1_sw,adapter1.length(),minoverlap,similarity,sw_mat);
     }
-
-
     if(a<(int)L1)
     {
 	if(!use_hamming) free(s_tmp);	
@@ -178,14 +192,13 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     {
 	a = sw_match(s_tmp,s.length(),adapter2_sw,adapter2.length(),minoverlap,similarity,sw_mat);
     }
-
-
     if(a<(int)L1)
     {
 	if(!use_hamming) free(s_tmp);
 	return(a-L2);        
     }
     if(!use_hamming) free(s_tmp);
+
     //ok nothing found. return end of string.
     return(L1);
 }
@@ -316,6 +329,13 @@ matePair::matePair()
     {
 	adapter2_sw[i]=seq_nt4_table[adapter2[i]];
     }    
+
+    adapterj_sw=(uint8_t *)malloc(adapterj.length()+1);
+    for(size_t i=0;i<adapterj.length();i++)
+    {
+	adapterj_sw[i]=seq_nt4_table[adapterj[i]];
+    }
+
 }
 
 //this is not redundant.
@@ -328,6 +348,7 @@ matePair::~matePair()
 {
     free(adapter1_sw);
     free(adapter2_sw);
+    free(adapterj_sw);
 }
 
 int matePair::clear() {
