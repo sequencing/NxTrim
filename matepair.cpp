@@ -97,10 +97,11 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
 	cerr << "score = "<<r.score<<endl;
 	cerr << "similarity = "<<sim<<endl;	
 	cerr << "(r.tb,r.te) = ("<<r.tb<<","<<r.te<<")"<<endl;    	
+	cerr << "(q.tb,q.te) = ("<<r.qb<<","<<r.qe<<")"<<endl;    	
     }
     assert(r.tb!=-1);
     assert(r.te!=-1);
-    if(sim<min_similarity || (r.te-r.tb)<minoverlap )
+    if(sim<min_similarity || (r.te-r.tb)<minoverlap || (r.qe-r.qb)<minoverlap )
     {
 	return tlen;
     }
@@ -108,11 +109,11 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     {
 	if(r.tb<=tlen)
 	{
-	    return(r.te-qlen);
+	    return(r.te-r.qe);
 	}
 	else
 	{
-	    return(r.tb);
+	    return(r.tb - r.qb);
 	}
     }
 }
