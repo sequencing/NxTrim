@@ -85,6 +85,10 @@ void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
 
 int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,float min_similarity,int8_t mat[25])
 {
+    if(qlen<minoverlap || tlen<minoverlap)
+    {
+	return tlen;
+    }
     int sa=1;
     int sb=2;
     int go = 1, ge = 3;    
@@ -101,8 +105,10 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
 	cerr << "(r.tb,r.te) = ("<<r.tb<<","<<r.te<<")"<<endl;    	
 	cerr << "(q.tb,q.te) = ("<<r.qb<<","<<r.qe<<")"<<endl;    	
     }
-    assert(r.tb!=-1);
-    assert(r.te!=-1);
+    if(r.tb==-1 || r.te==-1)
+    {
+	return tlen;
+    }
     if(sim<min_similarity || (r.te-r.tb)<minoverlap || (r.qe-r.qb)<minoverlap )
     {
 	return tlen;
