@@ -10,6 +10,11 @@ string adapterj = adapter1+adapter2;
 string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
+#define SW_GAP_EXTENSION 1
+#define SW_GAP_OPEN 3
+#define SW_MATCH 1 
+#define SW_MISMATCH 2
+
 #define DEBUG 0
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
@@ -89,10 +94,10 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     {
 	return tlen;
     }
-    int sa=1;
-    int sb=2;
-    int go = 1, ge = 3;    
-//    ta_opt_set_mat(sa, sb, mat);
+    int sa = SW_MATCH;
+    int sb = SW_MISMATCH;
+    int go = SW_GAP_OPEN, ge = SW_GAP_EXTENSION;
+
     kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART|(8*sa), 0);
     int substring_length = r.qe - r.qb < r.te - r.tb? r.qe - r.qb : r.te - r.tb;
 //    diff = (double)(k * opt->sa - r.score) / opt->sb / k; //lh3's diff measure
@@ -347,7 +352,7 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
 
 matePair::matePair()
 {
-    ta_opt_set_mat(1,2,sw_mat);
+    ta_opt_set_mat(SW_MATCH,SW_MISMATCH,sw_mat);
     adapter1_sw=(uint8_t *)malloc(adapter1.length()+1);
     for(size_t i=0;i<adapter1.length();i++)
     {

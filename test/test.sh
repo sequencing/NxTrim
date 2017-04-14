@@ -47,9 +47,9 @@ velvetg output_dir -exp_cov auto -cov_cutoff auto -shortMatePaired4 yes
 
 ## try the sw routine
 time ../nxtrim -1 $r1 -2 $r2  -O EcMG -s 0.7 -w
-for i in EcMG.*.fastq.gz;
+for i in mp unknown pe ;
 do
-    bwa mem $ref -p $i | gzip -1 > ${i%fastq.gz}bam
+    bwa mem $ref -p EcMG.${i}.fastq.gz | gzip -1 > ${i%fastq.gz}.bam
 done
 
 for i in EcMG*bam;do echo $i; /usr/bin/python alignment_summary.py  $i;done
