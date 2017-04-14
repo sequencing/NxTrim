@@ -569,10 +569,6 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	cerr << "L2 ="<<L2<<endl;
 	cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
     }
-
-    fqread rc1 = readpair.r1.rc();
-    fqread rc2 = readpair.r2.rc();
-
     
     //check for double adapters
     if(a1<L1)
@@ -591,6 +587,9 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	    return(1);
 	}
     }
+
+    fqread rc1 = readpair.r1.rc();
+    fqread rc2 = readpair.r2.rc();
     
     if(a1==L1&&b2<(L2-minoverlap))
     {//try to overlay the r2 overhang to r1 -> finds adapter on r1
