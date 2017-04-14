@@ -14,6 +14,9 @@ string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
+//smith-waterman alignment code and scoring was shamelessly taken from Heng Li's trimadap:
+//https://github.com/lh3/trimadap
+
 
 //lookup table for bases -> integers
 unsigned char seq_nt4_table[256] = {
@@ -68,8 +71,6 @@ int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
     return(mini);
 }
 
-//smith-waterman alignment code and scoring was shameless taken from Heng Li's trimadap
-//https://github.com/lh3/trimadap
 void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
 {
     int i, j, k;
@@ -574,7 +575,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     if(a1<L1)
     {
 	fqread tmp = readpair.r1.mask(max(0,a1),min(b1,L1));
-	if(findAdapter(tmp.s, minoverlap, similarity,use_hamming) < a1)
+	if(findAdapter(tmp.s, minoverlap, similarity,use_hamming) < L1)
 	{
 	    return(1);
 	}
@@ -582,7 +583,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     if(a2<L2)
     {
 	fqread tmp = readpair.r2.mask(max(0,a2),min(b2,L2));
-	if(findAdapter(tmp.s, minoverlap, similarity,use_hamming) < a2)
+	if(findAdapter(tmp.s, minoverlap, similarity,use_hamming) < L2)
 	{
 	    return(1);
 	}
