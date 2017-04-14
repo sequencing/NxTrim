@@ -10,8 +10,8 @@ string adapterj = adapter1+adapter2;
 string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
-#define SW_GAP_EXTENSION 1
-#define SW_GAP_OPEN 3
+#define SW_GAP_EXTENSION 3
+#define SW_GAP_OPEN 1
 #define SW_MATCH 1 
 #define SW_MISMATCH 2
 
