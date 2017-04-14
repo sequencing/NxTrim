@@ -81,6 +81,7 @@ void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
     for (j = 0; j < 5; ++j) mat[k++] = 0;
 }
 
+
 int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,float min_similarity,int8_t mat[25])
 {
     int sa=1;
@@ -118,14 +119,36 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     }
 }
 
+uint8_t * string2char(string & s)
+{
+    uint8_t *ret = (uint8_t *)malloc(s.length()+1);
+    for(int i=0;i<s.length();i++)
+    {
+	ret[i]=seq_nt4_table[s[i]];
+    }
+    return ret;
+}
+
+
+//an inffecient overloaded version of sw_match. needs to make copies of strings.
+int sw_match(string  target,string  query,int minoverlap,float min_similarity,int8_t mat[25])
+{
+    uint8_t *target_tmp=string2char(target);
+    uint8_t *query_tmp=string2char(query);
+    int ret = sw_match(target_tmp,target.length(),query_tmp,query.length(),minoverlap,min_similarity,mat);
+//    cerr << ret << endl;
+    free(target_tmp);
+    free(query_tmp);
+    return(ret);
+}
+
 int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_hamming)
 {
     unsigned  int L1 = s.size();
     unsigned  int L2 = adapter1.size();
-    //  cerr << L1 << " " << L2 << endl;
-
     
     unsigned  int perfect;
+    
     //first half of adapter
     perfect = s.find(adapter1);
     if(perfect<L1)
@@ -538,39 +561,51 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 
     int a1 = findAdapter(readpair.r1.s, minoverlap, similarity,use_hamming);
     int a2 = findAdapter(readpair.r2.s, minoverlap, similarity,use_hamming);
+    int b1 = a1+adapterj.size();
+    int b2 = a2+adapterj.size();
+    if(DEBUG>1)
+    {
+	cerr << "L1 ="<<L1<<endl;
+	cerr << "L2 ="<<L2<<endl;
+	cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    }
 
     fqread rc1 = readpair.r1.rc();
     fqread rc2 = readpair.r2.rc();
 
+    
     //check for double adapters
-    bool second_adapter_occurring_after_primary = readpair.r1.s.find(adapter1,a1+adapterj.size()) < readpair.r1.s.size()||readpair.r1.s.find(adapter2,a1+adapterj.size()) < readpair.r1.s.size()||readpair.r2.s.find(adapter1,a2+adapterj.size()) < readpair.r2.s.size()||readpair.r2.s.find(adapter2,a2+adapterj.size()) < readpair.r2.s.size();
-
-    bool second_adapter_occurring_before_primary=(a1>0&&readpair.r1.s.substr(0,a1).find(adapter1)<a1) || (a1>0&&readpair.r1.s.substr(0,a1).find(adapter2)<a1) || (a2>0&&readpair.r2.s.substr(0,a2).find(adapter1)<a2) ||(a2>0 && readpair.r2.s.substr(0,a2).find(adapter2) < a2);
-
-    if(second_adapter_occurring_after_primary||second_adapter_occurring_before_primary) return(1);
-
-
-    int b1 = a1+adapterj.size();
-    int b2 = a2+adapterj.size();
-    if(DEBUG>1) {
-	cerr << "L1 ="<<L1<<endl;
-	cerr << "L2 ="<<L2<<endl;
-
-	cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    if(a1<L1)
+    {
+	fqread tmp = readpair.r1.mask(max(0,a1),min(b1,L1));
+	if(findAdapter(tmp.s, minoverlap, similarity,use_hamming) < a1)
+	{
+	    return(1);
+	}
     }
-
-
-    if(a1==L1&&b2<(L2-minoverlap)) {//try to overlang the r2 overhang to r1 -> finds adapter on r1
+    if(a2<L2)
+    {
+	fqread tmp = readpair.r2.mask(max(0,a2),min(b2,L2));
+	if(findAdapter(tmp.s, minoverlap, similarity,use_hamming) < a2)
+	{
+	    return(1);
+	}
+    }
+    
+    if(a1==L1&&b2<(L2-minoverlap))
+    {//try to overlay the r2 overhang to r1 -> finds adapter on r1
 	string overhang = rc2.s.substr(0,rc2.l-b2);
 	a1 = ham_align(readpair.r1.s,overhang);
 	b1 = a1+adapterj.size();
     }
 
-    if(a2==L2&&b1<(L1-minoverlap)) {//vice-versa
+    if(a2==L2&&b1<(L1-minoverlap))
+    {//vice-versa
 	string overhang = rc1.s.substr(0,rc1.l-b1);
 	a2 = ham_align(readpair.r2.s,overhang);
 	b2 = a2+adapterj.size();
     }
+    
     if(DEBUG>1)  cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
     int minoverlap2 = 1; //final attempt to find unidfentifed adapters
     if(a1<L1&&a2==L2)//we know R1 has adapter. try check R2 for adapter with more liberal thresholds
