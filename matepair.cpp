@@ -15,7 +15,7 @@ string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 #define SW_MATCH 2
 #define SW_MISMATCH 3
 
-#define DEBUG 2
+#define DEBUG 0
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
