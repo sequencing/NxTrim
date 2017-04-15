@@ -10,12 +10,12 @@ string adapterj = adapter1+adapter2;
 string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
-#define SW_GAP_EXTENSION 3
-#define SW_GAP_OPEN 1
-#define SW_MATCH 1 
-#define SW_MISMATCH 2
+#define SW_GAP_EXTENSION 2
+#define SW_GAP_OPEN 5
+#define SW_MATCH 2
+#define SW_MISMATCH 3
 
-#define DEBUG 0
+#define DEBUG 2
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
@@ -311,10 +311,13 @@ int matePair::joinReads(fqread & r1,fqread & r2,fqread & output) {
 }
 
 int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
-    if(DEBUG>0)  cerr << "Resolving overhang"<<endl;
+    if(DEBUG>2)  
+    {
+	cerr << "Resolving overhang"<<endl;
+    }
     fqread tmp1 = r1.window(b,r1.l);
     fqread tmp2 = r1.window(b,r1.l).rc();
-    if(DEBUG>1)
+    if(DEBUG>2)
     {
 	cerr << r2.s <<endl;;
 	cerr << tmp2.s << endl;
@@ -577,9 +580,9 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     int b2 = a2+adapterj.size();
     if(DEBUG>1)
     {
-	cerr << "L1 ="<<L1<<endl;
-	cerr << "L2 ="<<L2<<endl;
-	cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+	cerr << "read L1 = "<<L1<<endl;
+	cerr << "read L2 = "<<L2<<endl;
+	cerr << "adapter locations (first pass): "<<a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
     }
     
     //check for double adapters
@@ -617,15 +620,20 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	b2 = a2+adapterj.size();
     }
     
-    if(DEBUG>1)  cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    if(DEBUG>1)  
+    {
+	cerr << "adapter locations (second pass): "<<a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    }
     int minoverlap2 = 1; //final attempt to find unidfentifed adapters
     if(a1<L1&&a2==L2)//we know R1 has adapter. try check R2 for adapter with more liberal thresholds
 	a2 = checkRight(readpair.r2.s,adapter1, L2-minoverlap, minoverlap2, similarity);
     if(a2<L2&&a1==L1)//vice-versa
 	a1 = checkRight(readpair.r1.s,adapter1, L1-minoverlap, minoverlap2, similarity);
 
-    if(DEBUG>1)  cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
-
+    if(DEBUG>1)
+    {
+	cerr << "adapter locations (third pass): "<<a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    }
     if(a1==L1 && a2==L2) {//no adapter found
 	// we could potentially run if(!joinReads(readpair.r1,rc2,se)) but this tends to give a lot of false joins
 	// possible improvement: check for r1/r2 overlap in absence of adapter -> overlap implies PE
@@ -674,19 +682,24 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	    }
 	    if(DEBUG>1) cerr << "CASE D"<<endl;
 	} 
-	else if(a2>=(L2-minoverlap) && a1<minlen) {//obvious PE
-	    if(a2>=minlen && (L1-b1)>=minlen) {
-		if(_justmp){
+	else if(a2>=(L2-minoverlap) && a1<minlen) 
+	{//obvious PE
+	    if(a2>=minlen && (L1-b1)>=minlen) 
+	    {
+		if(_justmp)
+		{
 		    mp=readPair(readpair.r1.mask(),readpair.r2.window(0,a2));
 		}
-		else{
+		else
+		{
 		    pe.r1 = readpair.r1.window(b1,b1+a2);  
 		    pe.r2 = readpair.r2.window(0,a2);    
 		}
 	    }
 	    if(DEBUG>1) cerr << "CASE E"<<endl;
 	} 
-	else if(both_have_adapter||R1_has_adapter_at_end||R2_has_adapter_at_end) {
+	else if(both_have_adapter||R1_has_adapter_at_end||R2_has_adapter_at_end) 
+	{
 	    //standard mp
 	    mp.r1=readpair.r1.window(0,a1);
 	    mp.r2=readpair.r2.window(0,a2);
@@ -698,11 +711,13 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	      se = readpair.r2.window(b2);
 	    */
 	} 
-	else if(b1<L1 && a2==L2) {
+	else if(b1<L1 && a2==L2) 
+	{
 	    resolve_overhang(readpair.r1,readpair.r2,a1,b1);
 	    if(DEBUG>1) cerr << "CASE G"<<endl;
 	} 
-	else if(b2<L2 && a1==L1) {
+	else if(b2<L2 && a1==L1) 
+	{
 	    resolve_overhang(readpair.r2,readpair.r1,a2,b2);
 	    fqread swap1 = pe.r1;
 	    pe.r1 = pe.r2;

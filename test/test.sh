@@ -52,4 +52,4 @@ do
     bwa mem $ref -p EcMG.${i}.fastq.gz | gzip -1 > ${i%fastq.gz}.bam
 done
 
-for i in EcMG*bam;do echo $i; /usr/bin/python alignment_summary.py  $i;done
+for i in *bam;do echo $i; /usr/bin/python alignment_summary.py  $i;done
