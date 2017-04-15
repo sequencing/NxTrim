@@ -10,10 +10,10 @@ string adapterj = adapter1+adapter2;
 string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
-#define SW_GAP_EXTENSION 2
-#define SW_GAP_OPEN 5
-#define SW_MATCH 2
-#define SW_MISMATCH 3
+#define SW_GAP_EXTENSION 3
+#define SW_GAP_OPEN 1
+#define SW_MATCH 1
+#define SW_MISMATCH 2
 
 #define DEBUG 0
 
@@ -99,6 +99,8 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     int go = SW_GAP_OPEN, ge = SW_GAP_EXTENSION;
 
     kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART|(8*sa), 0);
+    r.te++;
+    r.qe++;
     int substring_length = r.qe - r.qb < r.te - r.tb? r.qe - r.qb : r.te - r.tb;
 //    diff = (double)(k * opt->sa - r.score) / opt->sb / k; //lh3's diff measure
     float sim = float(r.score)/((float)substring_length*sa);
