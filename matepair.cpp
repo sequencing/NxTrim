@@ -1,19 +1,26 @@
 #include "matepair.h"
+//smith-waterman alignment/scoring code was shamelessly taken from Heng Li's trimadap https://github.com/lh3/trimadap
 
 //nextera mp adapters
 string adapter1 = "CTGTCTCTTATACACATCT";
 string adapter2 = "AGATGTGTATAAGAGACAG";
 string adapterj = adapter1+adapter2;
-//EXTERNAL adapters
+
+//EXTERNAL adapters. this are used to clip very short dna fragments where R1 goes into R2
 // string r1_external_adapter = "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC";
 // string r2_external_adapter = "ACACTCTTTCCCTACACGACGCTCTTCCGATC";                
 string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
+#define SW_MATCH 1
+#define SW_MISMATCH 3
+#define SW_GAP_OPEN 5
+#define SW_GAP_EXTENSION 2
+
+
 #define DEBUG 0
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
-
 
 //lookup table for bases -> integers
 unsigned char seq_nt4_table[256] = {
@@ -37,7 +44,7 @@ unsigned char seq_nt4_table[256] = {
 
 
 //only handles substitution errors in adapter (faster)
-int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
+int hamming_match(string & s1,string & s2,int minoverlap,float similarity) {
     //  assert(s2.size()<s1.size());
     if(s2.size()>=s1.size())
 	return(s1.size());
@@ -68,8 +75,6 @@ int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
     return(mini);
 }
 
-//smith-waterman alignment code and scoring was shameless taken from Heng Li's trimadap
-//https://github.com/lh3/trimadap
 void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
 {
     int i, j, k;
@@ -81,17 +86,24 @@ void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
     for (j = 0; j < 5; ++j) mat[k++] = 0;
 }
 
+
 int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,float min_similarity,int8_t mat[25])
 {
-    int sa=1;
-    int sb=2;
-    int go = 1, ge = 3;    
-//    ta_opt_set_mat(sa, sb, mat);
-    kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART|(8*sa), 0);
+    if(qlen<minoverlap || tlen<minoverlap)
+    {
+	return tlen;
+    }
+    int sa = SW_MATCH;
+    int sb = SW_MISMATCH;
+    int go = SW_GAP_OPEN;
+    int ge = SW_GAP_EXTENSION;
+
+    kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART, 0);
+    r.te++;
+    r.qe++;
     int substring_length = r.qe - r.qb < r.te - r.tb? r.qe - r.qb : r.te - r.tb;
 //    diff = (double)(k * opt->sa - r.score) / opt->sb / k; //lh3's diff measure
     float sim = float(r.score)/((float)substring_length*sa);
-
     if(DEBUG>2)
     {
 	cerr << "score = "<<r.score<<endl;
@@ -99,9 +111,11 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
 	cerr << "(r.tb,r.te) = ("<<r.tb<<","<<r.te<<")"<<endl;    	
 	cerr << "(q.tb,q.te) = ("<<r.qb<<","<<r.qe<<")"<<endl;    	
     }
-    assert(r.tb!=-1);
-    assert(r.te!=-1);
-    if(sim<min_similarity || (r.te-r.tb)<minoverlap || (r.qe-r.qb)<minoverlap )
+    if(r.tb==-1 || r.te==-1)
+    {
+	return tlen;
+    }
+    if(sim<min_similarity || substring_length<minoverlap )
     {
 	return tlen;
     }
@@ -118,14 +132,36 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     }
 }
 
+uint8_t * string2char(string & s)
+{
+    uint8_t *ret = (uint8_t *)malloc(s.length()+1);
+    for(int i=0;i<s.length();i++)
+    {
+	ret[i]=seq_nt4_table[s[i]];
+    }
+    return ret;
+}
+
+
+//an inffecient overloaded version of sw_match. needs to make copies of strings.
+int sw_match(string  target,string  query,int minoverlap,float min_similarity,int8_t mat[25])
+{
+    uint8_t *target_tmp=string2char(target);
+    uint8_t *query_tmp=string2char(query);
+    int ret = sw_match(target_tmp,target.length(),query_tmp,query.length(),minoverlap,min_similarity,mat);
+//    cerr << ret << endl;
+    free(target_tmp);
+    free(query_tmp);
+    return(ret);
+}
+
 int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_hamming)
 {
     unsigned  int L1 = s.size();
     unsigned  int L2 = adapter1.size();
-    //  cerr << L1 << " " << L2 << endl;
-
     
     unsigned  int perfect;
+    
     //first half of adapter
     perfect = s.find(adapter1);
     if(perfect<L1)
@@ -156,12 +192,13 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     //approximate match to entire adapter
     if(use_hamming)
     {
-	a = partial_match(s,adapterj,minoverlap,similarity);      
+	a = hamming_match(s,adapterj,minoverlap,similarity);      
     }
     else
     {
 	a = sw_match(s_tmp,s.length(),adapterj_sw,adapterj.length(),minoverlap,similarity,sw_mat);
     }
+
     if(a<(int)L1)
     {
 	if(!use_hamming) free(s_tmp);	
@@ -171,7 +208,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     //approximate match to first half
     if(use_hamming)
     {
-	a = partial_match(s,adapter1,minoverlap,similarity);      
+	a = hamming_match(s,adapter1,minoverlap,similarity);      
     }
     else
     {
@@ -186,7 +223,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     //second half
     if(use_hamming)
     {
-	a = partial_match(s,adapter2,minoverlap,similarity);
+	a = hamming_match(s,adapter2,minoverlap,similarity);
     }
     else
     {
@@ -207,7 +244,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
 //returns min( hamming( s1[offset1,offset+L], s2[offset2,offset2+L] ) , maxd )
 int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
     int d = 0;
-    //  cerr << s1 << endl << s2 << " " << offset1 << " " << offset2 << " " << L << endl;
+
     for(int i=0;i<L;i++) {
 	int j1=offset1+i;
 	int j2=offset2+i;
@@ -220,9 +257,8 @@ int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
 		break;
 	    }
 	}
-	//    cerr << j1 << " " <<j2<<" "<<s1[j1] << " " << s2[j2] << " " << d <<endl;
     }
-    //  cerr << "d = "<<d << endl;
+
     return(d);
 }
 
@@ -276,10 +312,13 @@ int matePair::joinReads(fqread & r1,fqread & r2,fqread & output) {
 }
 
 int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
-    if(DEBUG>0)  cerr << "Resolving overhang"<<endl;
+    if(DEBUG>2)  
+    {
+	cerr << "Resolving overhang"<<endl;
+    }
     fqread tmp1 = r1.window(b,r1.l);
     fqread tmp2 = r1.window(b,r1.l).rc();
-    if(DEBUG>1)
+    if(DEBUG>2)
     {
 	cerr << r2.s <<endl;;
 	cerr << tmp2.s << endl;
@@ -317,7 +356,7 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
 
 matePair::matePair()
 {
-    ta_opt_set_mat(1,2,sw_mat);
+    ta_opt_set_mat(SW_MATCH,SW_MISMATCH,sw_mat);
     adapter1_sw=(uint8_t *)malloc(adapter1.length()+1);
     for(size_t i=0;i<adapter1.length();i++)
     {
@@ -396,12 +435,12 @@ bool matePair::trimExternal(readPair& rp) {
 
     unsigned int tmp = rp.r1.s.find(r1_external_adapter);//PERFECT MATCH?
     if(tmp>=rp.r1.s.size()) //PARTIAL MATCH?
-	a = partial_match(rp.r1.s,r1_external_adapter,minoverlap,similarity);
+	a = hamming_match(rp.r1.s,r1_external_adapter,minoverlap,similarity);
     else a = (int)tmp;
     
     tmp = rp.r2.s.find(r2_external_adapter);//PERFECT MATCH?
     if(tmp>=rp.r1.s.size()) //PARTIAL MATCH?
-	b = partial_match(rp.r2.s,r2_external_adapter,minoverlap,similarity);
+	b = hamming_match(rp.r2.s,r2_external_adapter,minoverlap,similarity);
     else
 	b = (int)tmp;
 
@@ -538,48 +577,64 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 
     int a1 = findAdapter(readpair.r1.s, minoverlap, similarity,use_hamming);
     int a2 = findAdapter(readpair.r2.s, minoverlap, similarity,use_hamming);
+    int b1 = a1+adapterj.size();
+    int b2 = a2+adapterj.size();
+    if(DEBUG>1)
+    {
+	cerr << "read L1 = "<<L1<<endl;
+	cerr << "read L2 = "<<L2<<endl;
+	cerr << "adapter locations (first pass): "<<a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    }
+    
+    //check for extra unexpected adapter copies (entire read pair is discarded in this case)
+    if(a1<L1)
+    {
+	fqread tmp = readpair.r1.mask(max(0,a1),min(b1,L1));
+	if(findAdapter(tmp.s, minoverlap, similarity,use_hamming) < L1)
+	{
+	    return(1);
+	}
+    }
+    if(a2<L2)
+    {
+	fqread tmp = readpair.r2.mask(max(0,a2),min(b2,L2));
+	if(findAdapter(tmp.s, minoverlap, similarity,use_hamming) < L2)
+	{
+	    return(1);
+	}
+    }
 
     fqread rc1 = readpair.r1.rc();
     fqread rc2 = readpair.r2.rc();
-
-    //check for double adapters
-    bool second_adapter_occurring_after_primary = readpair.r1.s.find(adapter1,a1+adapterj.size()) < readpair.r1.s.size()||readpair.r1.s.find(adapter2,a1+adapterj.size()) < readpair.r1.s.size()||readpair.r2.s.find(adapter1,a2+adapterj.size()) < readpair.r2.s.size()||readpair.r2.s.find(adapter2,a2+adapterj.size()) < readpair.r2.s.size();
-
-    bool second_adapter_occurring_before_primary=(a1>0&&readpair.r1.s.substr(0,a1).find(adapter1)<a1) || (a1>0&&readpair.r1.s.substr(0,a1).find(adapter2)<a1) || (a2>0&&readpair.r2.s.substr(0,a2).find(adapter1)<a2) ||(a2>0 && readpair.r2.s.substr(0,a2).find(adapter2) < a2);
-
-    if(second_adapter_occurring_after_primary||second_adapter_occurring_before_primary) return(1);
-
-
-    int b1 = a1+adapterj.size();
-    int b2 = a2+adapterj.size();
-    if(DEBUG>1) {
-	cerr << "L1 ="<<L1<<endl;
-	cerr << "L2 ="<<L2<<endl;
-
-	cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
-    }
-
-
-    if(a1==L1&&b2<(L2-minoverlap)) {//try to overlang the r2 overhang to r1 -> finds adapter on r1
+    
+    if(a1==L1&&b2<(L2-minoverlap))
+    {//try to overlay the r2 overhang to r1 -> finds adapter on r1
 	string overhang = rc2.s.substr(0,rc2.l-b2);
 	a1 = ham_align(readpair.r1.s,overhang);
 	b1 = a1+adapterj.size();
     }
 
-    if(a2==L2&&b1<(L1-minoverlap)) {//vice-versa
+    if(a2==L2&&b1<(L1-minoverlap))
+    {//vice-versa
 	string overhang = rc1.s.substr(0,rc1.l-b1);
 	a2 = ham_align(readpair.r2.s,overhang);
 	b2 = a2+adapterj.size();
     }
-    if(DEBUG>1)  cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    
+    if(DEBUG>1)  
+    {
+	cerr << "adapter locations (second pass): "<<a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    }
     int minoverlap2 = 1; //final attempt to find unidfentifed adapters
     if(a1<L1&&a2==L2)//we know R1 has adapter. try check R2 for adapter with more liberal thresholds
 	a2 = checkRight(readpair.r2.s,adapter1, L2-minoverlap, minoverlap2, similarity);
     if(a2<L2&&a1==L1)//vice-versa
 	a1 = checkRight(readpair.r1.s,adapter1, L1-minoverlap, minoverlap2, similarity);
 
-    if(DEBUG>1)  cerr << a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
-
+    if(DEBUG>1)
+    {
+	cerr << "adapter locations (third pass): "<<a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
+    }
     if(a1==L1 && a2==L2) {//no adapter found
 	// we could potentially run if(!joinReads(readpair.r1,rc2,se)) but this tends to give a lot of false joins
 	// possible improvement: check for r1/r2 overlap in absence of adapter -> overlap implies PE
@@ -628,19 +683,24 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	    }
 	    if(DEBUG>1) cerr << "CASE D"<<endl;
 	} 
-	else if(a2>=(L2-minoverlap) && a1<minlen) {//obvious PE
-	    if(a2>=minlen && (L1-b1)>=minlen) {
-		if(_justmp){
+	else if(a2>=(L2-minoverlap) && a1<minlen) 
+	{//obvious PE
+	    if(a2>=minlen && (L1-b1)>=minlen) 
+	    {
+		if(_justmp)
+		{
 		    mp=readPair(readpair.r1.mask(),readpair.r2.window(0,a2));
 		}
-		else{
+		else
+		{
 		    pe.r1 = readpair.r1.window(b1,b1+a2);  
 		    pe.r2 = readpair.r2.window(0,a2);    
 		}
 	    }
 	    if(DEBUG>1) cerr << "CASE E"<<endl;
 	} 
-	else if(both_have_adapter||R1_has_adapter_at_end||R2_has_adapter_at_end) {
+	else if(both_have_adapter||R1_has_adapter_at_end||R2_has_adapter_at_end) 
+	{
 	    //standard mp
 	    mp.r1=readpair.r1.window(0,a1);
 	    mp.r2=readpair.r2.window(0,a2);
@@ -652,11 +712,13 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	      se = readpair.r2.window(b2);
 	    */
 	} 
-	else if(b1<L1 && a2==L2) {
+	else if(b1<L1 && a2==L2) 
+	{
 	    resolve_overhang(readpair.r1,readpair.r2,a1,b1);
 	    if(DEBUG>1) cerr << "CASE G"<<endl;
 	} 
-	else if(b2<L2 && a1==L1) {
+	else if(b2<L2 && a1==L1) 
+	{
 	    resolve_overhang(readpair.r2,readpair.r1,a2,b2);
 	    fqread swap1 = pe.r1;
 	    pe.r1 = pe.r2;

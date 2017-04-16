@@ -12,19 +12,6 @@ int overlap(string & s1,string & s2,int minoverlap,float similarity);
 
 
 
-
-class levenshtein {
- public:
-  levenshtein(string s1);
-  ~levenshtein() {delete column;}
-
-  unsigned int *column;
-  unsigned   int i, j, lastdiag, olddiag;
-  unsigned int L1,L2;
-  string s1;
-  int distance(string & s2,int offset,int maxdist,int indel_penalty=2);
-};
-
 class matePair {
   public:
   matePair(readPair & readpair,int minoverlap,float similarity,int minlen,bool joinreads,bool use_hamming,bool preserve_mp,bool jjmp);
