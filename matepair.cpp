@@ -95,15 +95,15 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     }
     int sa = SW_MATCH;
     int sb = SW_MISMATCH;
-    int go = SW_GAP_OPEN, ge = SW_GAP_EXTENSION;
+    int go = SW_GAP_OPEN;
+    int ge = SW_GAP_EXTENSION;
 
-    kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART|(8*sa), 0);
+    kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART, 0);
     r.te++;
     r.qe++;
     int substring_length = r.qe - r.qb < r.te - r.tb? r.qe - r.qb : r.te - r.tb;
 //    diff = (double)(k * opt->sa - r.score) / opt->sb / k; //lh3's diff measure
     float sim = float(r.score)/((float)substring_length*sa);
-
     if(DEBUG>2)
     {
 	cerr << "score = "<<r.score<<endl;
