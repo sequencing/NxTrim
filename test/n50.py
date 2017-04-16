@@ -49,4 +49,3 @@ if __name__ == "__main__":
     print "Assembly length\t%d"%sum(contig_lengths)
     print "#contigs\t%d"%len(contigs)
     print "Contig N50\t%d"%N50(contigs)
-

@@ -137,6 +137,7 @@ int main(int argc,char **argv) {
       cerr << "Output: " << prefix <<".*.fastq.gz"<<endl;
   }
 
+  
   cerr << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
   if(preserve_mp) cerr<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
   if(joinreads) cerr<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;

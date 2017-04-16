@@ -36,7 +36,8 @@ utilityfunc.o:  utilityfunc.cpp utilityfunc.h
 	$(CXX) $(CXXFLAGS) -c utilityfunc.cpp
 test: nxtrim
 	bash example/run_test.sh
+ecmg: nxtrim
+	cd test/;bash -e ecmg.sh
 clean:
 	rm *.o nxtrim test mergeReads version.h
-
-
+	rm -rf output_dir/

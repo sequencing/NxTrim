@@ -1,27 +1,26 @@
 #include "matepair.h"
+//smith-waterman alignment/scoring code was shamelessly taken from Heng Li's trimadap https://github.com/lh3/trimadap
 
 //nextera mp adapters
 string adapter1 = "CTGTCTCTTATACACATCT";
 string adapter2 = "AGATGTGTATAAGAGACAG";
 string adapterj = adapter1+adapter2;
-//EXTERNAL adapters
+
+//EXTERNAL adapters. this are used to clip very short dna fragments where R1 goes into R2
 // string r1_external_adapter = "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC";
 // string r2_external_adapter = "ACACTCTTTCCCTACACGACGCTCTTCCGATC";                
 string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
-#define SW_GAP_EXTENSION 3
-#define SW_GAP_OPEN 1
 #define SW_MATCH 1
-#define SW_MISMATCH 2
+#define SW_MISMATCH 3
+#define SW_GAP_OPEN 5
+#define SW_GAP_EXTENSION 2
+
 
 #define DEBUG 0
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
-
-//smith-waterman alignment code and scoring was shamelessly taken from Heng Li's trimadap:
-//https://github.com/lh3/trimadap
-
 
 //lookup table for bases -> integers
 unsigned char seq_nt4_table[256] = {
@@ -45,7 +44,7 @@ unsigned char seq_nt4_table[256] = {
 
 
 //only handles substitution errors in adapter (faster)
-int partial_match(string & s1,string & s2,int minoverlap,float similarity) {
+int hamming_match(string & s1,string & s2,int minoverlap,float similarity) {
     //  assert(s2.size()<s1.size());
     if(s2.size()>=s1.size())
 	return(s1.size());
@@ -116,7 +115,7 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     {
 	return tlen;
     }
-    if(sim<min_similarity || (r.te-r.tb)<minoverlap || (r.qe-r.qb)<minoverlap )
+    if(sim<min_similarity || substring_length<minoverlap )
     {
 	return tlen;
     }
@@ -193,12 +192,13 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     //approximate match to entire adapter
     if(use_hamming)
     {
-	a = partial_match(s,adapterj,minoverlap,similarity);      
+	a = hamming_match(s,adapterj,minoverlap,similarity);      
     }
     else
     {
 	a = sw_match(s_tmp,s.length(),adapterj_sw,adapterj.length(),minoverlap,similarity,sw_mat);
     }
+
     if(a<(int)L1)
     {
 	if(!use_hamming) free(s_tmp);	
@@ -208,7 +208,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     //approximate match to first half
     if(use_hamming)
     {
-	a = partial_match(s,adapter1,minoverlap,similarity);      
+	a = hamming_match(s,adapter1,minoverlap,similarity);      
     }
     else
     {
@@ -223,7 +223,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     //second half
     if(use_hamming)
     {
-	a = partial_match(s,adapter2,minoverlap,similarity);
+	a = hamming_match(s,adapter2,minoverlap,similarity);
     }
     else
     {
@@ -244,7 +244,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
 //returns min( hamming( s1[offset1,offset+L], s2[offset2,offset2+L] ) , maxd )
 int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
     int d = 0;
-    //  cerr << s1 << endl << s2 << " " << offset1 << " " << offset2 << " " << L << endl;
+
     for(int i=0;i<L;i++) {
 	int j1=offset1+i;
 	int j2=offset2+i;
@@ -257,9 +257,8 @@ int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
 		break;
 	    }
 	}
-	//    cerr << j1 << " " <<j2<<" "<<s1[j1] << " " << s2[j2] << " " << d <<endl;
     }
-    //  cerr << "d = "<<d << endl;
+
     return(d);
 }
 
@@ -436,12 +435,12 @@ bool matePair::trimExternal(readPair& rp) {
 
     unsigned int tmp = rp.r1.s.find(r1_external_adapter);//PERFECT MATCH?
     if(tmp>=rp.r1.s.size()) //PARTIAL MATCH?
-	a = partial_match(rp.r1.s,r1_external_adapter,minoverlap,similarity);
+	a = hamming_match(rp.r1.s,r1_external_adapter,minoverlap,similarity);
     else a = (int)tmp;
     
     tmp = rp.r2.s.find(r2_external_adapter);//PERFECT MATCH?
     if(tmp>=rp.r1.s.size()) //PARTIAL MATCH?
-	b = partial_match(rp.r2.s,r2_external_adapter,minoverlap,similarity);
+	b = hamming_match(rp.r2.s,r2_external_adapter,minoverlap,similarity);
     else
 	b = (int)tmp;
 
@@ -587,7 +586,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	cerr << "adapter locations (first pass): "<<a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
     }
     
-    //check for double adapters
+    //check for extra unexpected adapter copies (entire read pair is discarded in this case)
     if(a1<L1)
     {
 	fqread tmp = readpair.r1.mask(max(0,a1),min(b1,L1));
