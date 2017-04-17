@@ -202,6 +202,24 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
 	return(perfect-L2);      
     }
 
+    for(int i=0;i<nseed;i++)
+    {
+      int start=L1;
+      if(similarity<1)
+      {
+	  start=hamming_match(s,seeds[i],seedsize,similarity);
+      }
+      else
+      {
+	  start = s.find(seeds[i]);
+      }
+      if(start<L1) 
+      {//found a seed
+	  return(start-i);
+      }
+    }
+
+
     //if we are not using hamming matching, we need to convert the read into ksw useable format
     uint8_t *s_tmp;
     if(!use_hamming)
@@ -401,6 +419,14 @@ matePair::matePair()
 	adapterj_sw[i]=seq_nt4_table[adapterj[i]];
     }
 
+    //build seeds;
+    seedsize=adapter1.length();
+    nseed=0;
+    for(int i=0;i<adapterj.length()-seedsize;i++)      
+    {
+      seeds.push_back(adapterj.substr(i,seedsize));
+      nseed++;
+    }
 }
 
 //this is not redundant.
