@@ -111,6 +111,9 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
 	cerr << "(r.tb,r.te) = ("<<r.tb<<","<<r.te<<")"<<endl;    	
 	cerr << "(q.tb,q.te) = ("<<r.qb<<","<<r.qe<<")"<<endl;    	
     }
+
+    int adapter_start = r.tb - r.qb;
+    int adapter_end = r.te + (qlen-r.qe);
     if(r.tb==-1 || r.te==-1)
     {
 	return tlen;
@@ -121,14 +124,7 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     }
     else
     {
-	if(r.tb<=tlen)
-	{
-	    return(r.te-r.qe);
-	}
-	else
-	{
-	    return(r.tb - r.qb);
-	}
+	return adapter_start;
     }
 }
 
