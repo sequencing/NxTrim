@@ -6,6 +6,7 @@ string adapter1 = "CTGTCTCTTATACACATCT";
 string adapter2 = "AGATGTGTATAAGAGACAG";
 string adapterj = adapter1+adapter2;
 
+
 //EXTERNAL adapters. this are used to clip very short dna fragments where R1 goes into R2
 // string r1_external_adapter = "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC";
 // string r2_external_adapter = "ACACTCTTTCCCTACACGACGCTCTTCCGATC";                
@@ -13,9 +14,21 @@ string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
 #define SW_MATCH 1
-#define SW_MISMATCH 3
+#define SW_MISMATCH 1
 #define SW_GAP_OPEN 5
 #define SW_GAP_EXTENSION 2
+
+//trimadapt penalities
+// #define SW_MATCH 1
+// #define SW_MISMATCH 2
+// #define SW_GAP_OPEN 1
+// #define SW_GAP_EXTENSION 3
+
+//bwasw penalities
+// #define SW_MATCH 1
+// #define SW_MISMATCH 3
+// #define SW_GAP_OPEN 5
+// #define SW_GAP_EXTENSION 2
 
 
 #define DEBUG 0
@@ -104,6 +117,7 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     int substring_length = r.qe - r.qb < r.te - r.tb? r.qe - r.qb : r.te - r.tb;
 //    diff = (double)(k * opt->sa - r.score) / opt->sb / k; //lh3's diff measure
     float sim = float(r.score)/((float)substring_length*sa);
+    sim = min(sim,(float)substring_length /  qlen);
     if(DEBUG>2)
     {
 	cerr << "score = "<<r.score<<endl;
@@ -114,18 +128,20 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
 
     int adapter_start = r.tb - r.qb;
     int adapter_end = r.te + (qlen-r.qe);
-    if(r.tb==-1 || r.te==-1)
+    if( adapter_end<minoverlap || (tlen-adapter_start)<minoverlap )//overlap too small
     {
 	return tlen;
     }
-    if(sim<min_similarity || substring_length<minoverlap )
+    if(r.tb==-1 || r.te==-1) //alignment failed?
     {
 	return tlen;
     }
-    else
+    if(sim<min_similarity)
     {
-	return adapter_start;
+	return tlen;
     }
+    
+    return adapter_start;
 }
 
 uint8_t * string2char(string & s)
