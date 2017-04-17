@@ -184,24 +184,21 @@ int sw_match(string  target,string  query,int minoverlap,float min_similarity,in
 int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_hamming)
 {
     unsigned  int L1 = s.size();
-    unsigned  int L2 = adapter1.size();
-    
+    unsigned  int L2 = adapter1.size();    
     unsigned  int perfect;
     
-    //first half of adapter
-    perfect = s.find(adapter1);
-    if(perfect<L1)
+    //first pass of the algorithm. just check for perfect 19bp matches.
+    for(int i=0;i<nseed;i++)
     {
-	return(perfect);      
+	int start=L1;
+        start = s.find(seeds[i]);
+	if(start<L1) 
+	{//found a seed
+	    return(start-i);
+	}
     }
 
-    //second half of adapter
-    perfect = s.find(adapter2);
-    if(perfect<L1)
-    {
-	return(perfect-L2);      
-    }
-
+    
     //if we are not using hamming matching, we need to convert the read into ksw useable format
     uint8_t *s_tmp;
     if(!use_hamming)
@@ -401,6 +398,16 @@ matePair::matePair()
 	adapterj_sw[i]=seq_nt4_table[adapterj[i]];
     }
 
+    //build seeds;
+    nseed=0;
+    seedsize=19;
+    for(int i=0;i<adapterj.length()-seedsize;i++)      
+    {
+      seeds.push_back(adapterj.substr(i,seedsize));
+      nseed++;
+    }
+
+    
 }
 
 //this is not redundant.
@@ -600,11 +607,8 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	cerr  << readpair.r2.q <<endl;		
 	return(0);
     }
-    if(DEBUG>1) 
-	cerr<<"READ1:"<<endl;
+
     int a1 = findAdapter(readpair.r1.s, minoverlap, similarity,use_hamming);
-    if(DEBUG>1) 
-	cerr<<"READ2:"<<endl;
     int a2 = findAdapter(readpair.r2.s, minoverlap, similarity,use_hamming);
     int b1 = a1+adapterj.size();
     int b2 = a2+adapterj.size();
