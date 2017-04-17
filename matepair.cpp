@@ -15,8 +15,8 @@ string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
 #define SW_MATCH 1
 #define SW_MISMATCH 1
-#define SW_GAP_OPEN 5
-#define SW_GAP_EXTENSION 2
+#define SW_GAP_OPEN 1
+#define SW_GAP_EXTENSION 3
 
 //trimadapt penalities
 // #define SW_MATCH 1
@@ -73,7 +73,6 @@ int hamming_match(string & s1,string & s2,int minoverlap,float similarity) {
 	if( (int)s2.size() > ((int)s1.size()-i)) compare_length = (float)(s1.size()-i);
 	int maxdist = ceil ( (1.-similarity) * compare_length);
 	int d = hamming(s1,s2,i,0,s2.size(),maxdist);
-	//    cerr << i<<" "<<maxdist<<" "<<d<<endl;
 
 	if(d<mind&&d<maxdist) {
 	    mini=i;
@@ -114,10 +113,27 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
     kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART, 0);
     r.te++;
     r.qe++;
+    int adapter_start = r.tb - r.qb;
+    int adapter_end = r.te + (qlen-r.qe);
     int substring_length = r.qe - r.qb < r.te - r.tb? r.qe - r.qb : r.te - r.tb;
 //    diff = (double)(k * opt->sa - r.score) / opt->sb / k; //lh3's diff measure
-    float sim = float(r.score)/((float)substring_length*sa);
+    float sim = (float)r.score/ ((float)substring_length*sa);
     sim = min(sim,(float)substring_length /  qlen);
+
+//hacky way to see if we can extend the adapter (no gaps)
+    int hdist=0;
+    int offset=max(0,adapter_start);
+    int count=0;
+    for(int i = offset;i<min(tlen,adapter_end);i++)
+    {
+	if(target[i]==query[i-adapter_start])
+	{
+	    hdist++;
+	}
+	count++;
+    }
+    sim = max(sim,(float)hdist/(float)count);
+
     if(DEBUG>2)
     {
 	cerr << "score = "<<r.score<<endl;
@@ -126,8 +142,6 @@ int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,flo
 	cerr << "(q.tb,q.te) = ("<<r.qb<<","<<r.qe<<")"<<endl;    	
     }
 
-    int adapter_start = r.tb - r.qb;
-    int adapter_end = r.te + (qlen-r.qe);
     if( adapter_end<minoverlap || (tlen-adapter_start)<minoverlap )//overlap too small
     {
 	return tlen;
@@ -586,8 +600,11 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	cerr  << readpair.r2.q <<endl;		
 	return(0);
     }
-
+    if(DEBUG>1) 
+	cerr<<"READ1:"<<endl;
     int a1 = findAdapter(readpair.r1.s, minoverlap, similarity,use_hamming);
+    if(DEBUG>1) 
+	cerr<<"READ2:"<<endl;
     int a2 = findAdapter(readpair.r2.s, minoverlap, similarity,use_hamming);
     int b1 = a1+adapterj.size();
     int b2 = a2+adapterj.size();
