@@ -68,21 +68,6 @@ If you wish to preserve mate-pair libraries whenever possible, the --preservemp 
 
 You can trade specificity/sensitivity of junction adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera junction adapter).  The defaults were well suited to bacteria in our testing.
 
-### Adapter matching:
-
-We implement a very simple approach. Each read is searched for the junction adapter (`CTGTCTCTTATACACATCT`) and its reverse complement (`AGATGTGTATAAGAGACAG`) based on Hamming distance, the entire junction being `CTGTCTCTTATACACATCT`+`AGATGTGTATAAGAGACAG`. If a match to either side of the junction is found then the entire 38bp juncton is clipped. This means the algorithm can tolerate an indel error in one of the sides of the junction, but not both. Optionally Smith-Waterman alignment can be turned on with `-w` which resolves this issue, although the code is less tested.
-
-eg. this will be caught:
-
-```
-CTGTCTCT-TA-TACACATCTAGATGTGTATAAGAGACAG
-```
-
-but not this:
-
-```
-CTGTCTCT-TA-TACACATCTAGATGT-GTATAAGAGACAG
-```
 
 ### Example data:
 
