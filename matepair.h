@@ -3,10 +3,6 @@
 #include "math.h"
 #include "stdint.h"
 
-extern "C" {
-#include "ksw.h"
-}
-
 int hamming(string & s1,string & s2,int offset1,int offset2,int L,int maxd);
 int overlap(string & s1,string & s2,int minoverlap,float similarity);
 
@@ -31,13 +27,11 @@ class matePair {
   int minoverlap,  minlen;
   float similarity;
 
-  //stuff for ksw
-  uint8_t *adapter1_sw,*adapter2_sw,*adapterj_sw;
-  int8_t sw_mat[25];  
-
-//stuff for shredding
+  //stuff for shredding
   vector<string> seeds;
   int nseed,seedsize;
+  bool _aggressive;
+  void setAggressive(bool a) {_aggressive=a;};
 };
 
 //handles the output for nxtrim (which reads go to which file etc)

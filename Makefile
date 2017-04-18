@@ -20,12 +20,10 @@ endif
 version.h:
 	echo '#define VERSION "$(VERSION)$(GIT_VERSION)"' > $@
 
-ksw.o: ksw.c ksw.h
-	$(CC) -c ksw.c
 unit_test: test.cpp fastqlib.o utilityfunc.o matepair.o
 	$(CXX) $(CXXFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o unit_test   $(LFLAGS)
-nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o version.h ksw.o
-	$(CXX) $(CXXFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o ksw.o -o nxtrim  $(LFLAGS)
+nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o version.h 
+	$(CXX) $(CXXFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o  -o nxtrim  $(LFLAGS)
 mergeReads: mergeReads.cpp fastqlib.o utilityfunc.o fastqlib.o githash.h version.h
 	$(CXX) $(CXXFLAGS)  mergeReads.cpp fastqlib.o utilityfunc.o -o mergeReads   $(LFLAGS)
 matepair.o: matepair.cpp matepair.h fastqlib.h

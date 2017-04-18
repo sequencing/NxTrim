@@ -1,11 +1,9 @@
 #include "matepair.h"
-//smith-waterman alignment/scoring code was shamelessly taken from Heng Li's trimadap https://github.com/lh3/trimadap
 
 //nextera mp adapters
 string adapter1 = "CTGTCTCTTATACACATCT";
 string adapter2 = "AGATGTGTATAAGAGACAG";
 string adapterj = adapter1+adapter2;
-
 
 //EXTERNAL adapters. this are used to clip very short dna fragments where R1 goes into R2
 // string r1_external_adapter = "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC";
@@ -13,233 +11,119 @@ string adapterj = adapter1+adapter2;
 string r1_external_adapter = "GATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
 string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
-#define SW_MATCH 1
-#define SW_MISMATCH 1
-#define SW_GAP_OPEN 1
-#define SW_GAP_EXTENSION 3
-
-//trimadapt penalities
-// #define SW_MATCH 1
-// #define SW_MISMATCH 2
-// #define SW_GAP_OPEN 1
-// #define SW_GAP_EXTENSION 3
-
-//bwasw penalities
-// #define SW_MATCH 1
-// #define SW_MISMATCH 3
-// #define SW_GAP_OPEN 5
-// #define SW_GAP_EXTENSION 2
-
-
 #define DEBUG 0
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
-//lookup table for bases -> integers
-unsigned char seq_nt4_table[256] = {
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4 /*'-'*/, 4, 4,
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
-    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4
-};
-
 
 //only handles substitution errors in adapter (faster)
-int hamming_match(string & s1,string & s2,int minoverlap,float similarity) {
-    //  assert(s2.size()<s1.size());
-    if(s2.size()>=s1.size())
-	return(s1.size());
-    int mini=s1.size(),mind=s2.size();
-    assert((int)s1.size()>=minoverlap);
-  
-    int start = -(s2.size()-minoverlap);
-    int stop = s1.size() - minoverlap;
-    //  cerr << "Range: " << start << " " << stop << endl;
-    for(int i=start;i<stop;i++) {
-	float compare_length = s2.size();
-	if( i<0) compare_length += i;
-	if( (int)s2.size() > ((int)s1.size()-i)) compare_length = (float)(s1.size()-i);
-	int maxdist = ceil ( (1.-similarity) * compare_length);
-	int d = hamming(s1,s2,i,0,s2.size(),maxdist);
+int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
+{
+    int L1=s1.size();
+    int L2=s2.size();
+    if(L2>=L1)
+    {
+	return(L1);	
+    }
 
-	if(d<mind&&d<maxdist) {
+    assert((int)L1>=minoverlap);
+    //check for full s2 matches. 
+    int maxdist = ceil ( (1.-similarity) * L2);
+    int mini=L1,mind=L2;    
+    for(int i=0;i<(L1-L2);i++)
+    {
+	int d=0,j=0;
+	while(j<L2&&d<maxdist)
+	{
+	    d += s1[i+j]!=s2[j++];	    
+	}
+
+	if(d<mind)
+	{
 	    mini=i;
 	    mind=d;
-	    if(DEBUG>2) {
-		cerr << compare_length << endl;
-		cerr << mini << " " << mind << "<" << mind << endl;
-	    }
 	}
-    }
-
-    return(mini);
-}
-
-void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
-{
-    int i, j, k;
-    for (i = k = 0; i < 4; ++i) {
-	for (j = 0; j < 4; ++j)
-	    mat[k++] = i == j? sa : -sb;
-	mat[k++] = 0; // ambiguous base
-    }
-    for (j = 0; j < 5; ++j) mat[k++] = 0;
-}
-
-
-int sw_match(uint8_t *target,int tlen,uint8_t *query,int qlen,int minoverlap,float min_similarity,int8_t mat[25])
-{
-    if(qlen<minoverlap || tlen<minoverlap)
-    {
-	return tlen;
-    }
-    int sa = SW_MATCH;
-    int sb = SW_MISMATCH;
-    int go = SW_GAP_OPEN;
-    int ge = SW_GAP_EXTENSION;
-
-    kswr_t r = ksw_align(qlen, query, tlen, target, 5, mat, go, ge, KSW_XBYTE|KSW_XSTART, 0);
-    r.te++;
-    r.qe++;
-    int adapter_start = r.tb - r.qb;
-    int adapter_end = r.te + (qlen-r.qe);
-    int substring_length = r.qe - r.qb < r.te - r.tb? r.qe - r.qb : r.te - r.tb;
-//    diff = (double)(k * opt->sa - r.score) / opt->sb / k; //lh3's diff measure
-    float sim = (float)r.score/ ((float)substring_length*sa);
-    sim = min(sim,(float)substring_length /  qlen);
-
-//hacky way to see if we can extend the adapter (no gaps)
-    int hdist=0;
-    int offset=max(0,adapter_start);
-    int count=0;
-    for(int i = offset;i<min(tlen,adapter_end);i++)
-    {
-	if(target[i]==query[i-adapter_start])
-	{
-	    hdist++;
-	}
-	count++;
-    }
-    sim = max(sim,(float)hdist/(float)count);
-
-    if(DEBUG>2)
-    {
-	cerr << "score = "<<r.score<<endl;
-	cerr << "similarity = "<<sim<<endl;	
-	cerr << "(r.tb,r.te) = ("<<r.tb<<","<<r.te<<")"<<endl;    	
-	cerr << "(q.tb,q.te) = ("<<r.qb<<","<<r.qe<<")"<<endl;    	
-    }
-
-    if( adapter_end<minoverlap || (tlen-adapter_start)<minoverlap )//overlap too small
-    {
-	return tlen;
-    }
-    if(r.tb==-1 || r.te==-1) //alignment failed?
-    {
-	return tlen;
-    }
-    if(sim<min_similarity)
-    {
-	return tlen;
     }
     
-    return adapter_start;
-}
-
-uint8_t * string2char(string & s)
-{
-    uint8_t *ret = (uint8_t *)malloc(s.length()+1);
-    for(int i=0;i<s.length();i++)
+    if(mind<maxdist)
     {
-	ret[i]=seq_nt4_table[s[i]];
+	return(mini);
     }
-    return ret;
-}
+    
+    //no full match. check the edges.
+    mini=L1,mind=L2;
+    for(int i=L2-1;i>=minoverlap;i--)
+    {
+	maxdist = ceil ( (1.-similarity) * i);
 
+	//check the front of s1
+	int j=L2-i,d=0;
+	while(j<L2&&d<maxdist)
+	{
+	    d+=s1[j-L2+i]!=s2[j++];
+	}
+	if(d<mind)
+	{
+	    mini=i-L2;
+	    mind=d;
+	}
+	
+        //check the back of s1
+	int d_back=0;
+	j=L1-i;
+	while(j<L1&&d_back<maxdist)
+	{
+	    d_back+=s1[j]!=s2[j-L1+i];
+	    j++;
+	}
+	if(d_back<mind)
+	{
+	    mini=L1-i;
+	    mind=d_back;
+	}
+    }
 
-//an inffecient overloaded version of sw_match. needs to make copies of strings.
-int sw_match(string  target,string  query,int minoverlap,float min_similarity,int8_t mat[25])
-{
-    uint8_t *target_tmp=string2char(target);
-    uint8_t *query_tmp=string2char(query);
-    int ret = sw_match(target_tmp,target.length(),query_tmp,query.length(),minoverlap,min_similarity,mat);
-//    cerr << ret << endl;
-    free(target_tmp);
-    free(query_tmp);
-    return(ret);
+    if(mind<maxdist)
+    {
+	return(mini);
+    }
+
+    return L1;
 }
 
 int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_hamming)
 {
     unsigned  int L1 = s.size();
-    unsigned  int L2 = adapter1.size();    
-    unsigned  int perfect;
-    
-    //first pass of the algorithm. just check for perfect 19bp matches.
-    for(int i=0;i<nseed;i++)
-    {
-	int start=L1;
-        start = s.find(seeds[i]);
-	if(start<L1) 
-	{//found a seed
-	    return(start-i);
-	}
-    }
-
-    
-    //if we are not using hamming matching, we need to convert the read into ksw useable format
-    uint8_t *s_tmp;
-    if(!use_hamming)
-    {
-	s_tmp = (uint8_t *)malloc(s.length()+1);
-	for(int i=0;i<s.length();i++)
-	{
-	    s_tmp[i]=seq_nt4_table[s[i]];
-	}
-    }
+    unsigned  int L2 = adapter1.size();
 
     int a;//this is the start location of the adapter
 
-    //approximate match to entire adapter
+    // match to entire adapter
     if(use_hamming)
     {
 	a = hamming_match(s,adapterj,minoverlap,similarity);      
     }
     else
     {
-	a = sw_match(s_tmp,s.length(),adapterj_sw,adapterj.length(),minoverlap,similarity,sw_mat);
+	die("only hamming distance available");
     }
 
     if(a<(int)L1)
     {
-	if(!use_hamming) free(s_tmp);	
 	return a;
     }
     
-    //approximate match to first half
+    // match to first half
     if(use_hamming)
     {
 	a = hamming_match(s,adapter1,minoverlap,similarity);      
     }
     else
     {
-	a = sw_match(s_tmp,s.length(),adapter1_sw,adapter1.length(),minoverlap,similarity,sw_mat);
+	die("only hamming distance available");
     }
     if(a<(int)L1)
     {
-	if(!use_hamming) free(s_tmp);	
 	return a;
     }
 
@@ -250,15 +134,34 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     }
     else
     {
-	a = sw_match(s_tmp,s.length(),adapter2_sw,adapter2.length(),minoverlap,similarity,sw_mat);
+	die("only hamming distance available");
     }
     if(a<(int)L1)
     {
-	if(!use_hamming) free(s_tmp);
 	return(a-L2);        
     }
-    if(!use_hamming) free(s_tmp);
 
+    //check for shredded junction adapter (aggressive detection mode)
+    if(_aggressive)
+    {
+	for(int i=0;i<nseed;i++)
+	{
+	    int start=L1;
+	    if(similarity<1)
+	    {
+		start=hamming_match(s,seeds[i],seedsize,similarity);
+	    }
+	    else
+	    {
+		start = s.find(seeds[i]);
+	    }
+	    if(start<L1) 
+	    {//found a seed
+		return(start-i);
+	    }
+	}
+    }
+    
     //ok nothing found. return end of string.
     return(L1);
 }
@@ -273,12 +176,11 @@ int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
 	int j2=offset2+i;
 
 	if(j1>=0 && j1<(int)s1.size() && j2>=0 && j2<(int)s2.size() ) {
-	    if(s1[j1]!=s2[j2])
-		d++;
-	    if(d>maxd) {
-		d=s1.length();
-		break;
-	    }
+	  d+=(s1[j1]!=s2[j2]);
+	  if(d>maxd) {
+	    d=s1.length();
+	    break;
+	  }
 	}
     }
 
@@ -379,48 +281,20 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
 
 matePair::matePair()
 {
-    ta_opt_set_mat(SW_MATCH,SW_MISMATCH,sw_mat);
-    adapter1_sw=(uint8_t *)malloc(adapter1.length()+1);
-    for(size_t i=0;i<adapter1.length();i++)
-    {
-	adapter1_sw[i]=seq_nt4_table[adapter1[i]];
-    }
-    
-    adapter2_sw=(uint8_t *)malloc(adapter2.length()+1);    
-    for(size_t i=0;i<adapter2.length();i++)
-    {
-	adapter2_sw[i]=seq_nt4_table[adapter2[i]];
-    }    
-
-    adapterj_sw=(uint8_t *)malloc(adapterj.length()+1);
-    for(size_t i=0;i<adapterj.length();i++)
-    {
-	adapterj_sw[i]=seq_nt4_table[adapterj[i]];
-    }
+    _aggressive=false;
 
     //build seeds;
+    seedsize=adapter1.length();
     nseed=0;
-    seedsize=19;
     for(int i=0;i<adapterj.length()-seedsize;i++)      
     {
       seeds.push_back(adapterj.substr(i,seedsize));
       nseed++;
     }
-
-    
 }
-
-//this is not redundant.
-// matePair::matePair(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp,bool jmp)
-// {
-//     build(readpair,minovl,sim,ml,jr,uh,pmp,jmp);
-// }
 
 matePair::~matePair()
 {
-    free(adapter1_sw);
-    free(adapter2_sw);
-    free(adapterj_sw);
 }
 
 int matePair::clear() {
@@ -437,10 +311,12 @@ int matePair::clear() {
 
 //this is just a simple routine to trim edges off matepairs where the Nx adapter was not detected
 //removes perfect adapter matches on edges that are < minoverlap
-int matePair::trimUnknown() {
+int matePair::trimUnknown()
+{
     //start
     int a1=0,a2=0,b1=unknown.r1.l,b2=unknown.r2.l;
-    for(int i=3;i<=minoverlap;i++) {
+    for(int i=3;i<=minoverlap;i++)
+    {
 	int offset = unknown.r1.l-i;    
 	int maxd = ceil ( (1.-similarity) * i);
 	if(hamming(unknown.r1.s,adapter1,offset,0,i,maxd)<maxd)
@@ -462,7 +338,8 @@ int matePair::trimUnknown() {
 }
 
 //gets rid of the rare case where external adapters are present (isize < 2*L)
-bool matePair::trimExternal(readPair& rp) {
+bool matePair::trimExternal(readPair& rp)
+{
     bool found = false;
     int a,b;
 
