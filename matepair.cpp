@@ -185,40 +185,8 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
 {
     unsigned  int L1 = s.size();
     unsigned  int L2 = adapter1.size();
-    
-    unsigned  int perfect;
-    
-    //first half of adapter
-    perfect = s.find(adapter1);
-    if(perfect<L1)
-    {
-	return(perfect);      
-    }
 
-    //second half of adapter
-    perfect = s.find(adapter2);
-    if(perfect<L1)
-    {
-	return(perfect-L2);      
-    }
-
-    for(int i=0;i<nseed;i++)
-    {
-      int start=L1;
-      if(similarity<1)
-      {
-	  start=hamming_match(s,seeds[i],seedsize,similarity);
-      }
-      else
-      {
-	  start = s.find(seeds[i]);
-      }
-      if(start<L1) 
-      {//found a seed
-	  return(start-i);
-      }
-    }
-
+    int a;//this is the start location of the adapter
 
     //if we are not using hamming matching, we need to convert the read into ksw useable format
     uint8_t *s_tmp;
@@ -230,10 +198,8 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
 	    s_tmp[i]=seq_nt4_table[s[i]];
 	}
     }
-
-    int a;//this is the start location of the adapter
-
-    //approximate match to entire adapter
+    
+    // match to entire adapter
     if(use_hamming)
     {
 	a = hamming_match(s,adapterj,minoverlap,similarity);      
@@ -249,7 +215,7 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
 	return a;
     }
     
-    //approximate match to first half
+    // match to first half
     if(use_hamming)
     {
 	a = hamming_match(s,adapter1,minoverlap,similarity);      
@@ -280,6 +246,24 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     }
     if(!use_hamming) free(s_tmp);
 
+    //check for shredded junction adapter (aggressive detection mode)
+    for(int i=0;i<nseed;i++)
+    {
+      int start=L1;
+      if(similarity<1)
+      {
+	  start=hamming_match(s,seeds[i],seedsize,similarity);
+      }
+      else
+      {
+	  start = s.find(seeds[i]);
+      }
+      if(start<L1) 
+      {//found a seed
+	  return(start-i);
+      }
+    }
+    
     //ok nothing found. return end of string.
     return(L1);
 }
@@ -294,12 +278,11 @@ int hamming(string & s1,string & s2,int offset1, int offset2,int L,int maxd) {
 	int j2=offset2+i;
 
 	if(j1>=0 && j1<(int)s1.size() && j2>=0 && j2<(int)s2.size() ) {
-	    if(s1[j1]!=s2[j2])
-		d++;
-	    if(d>maxd) {
-		d=s1.length();
-		break;
-	    }
+	  d+=(s1[j1]!=s2[j2]);
+	  if(d>maxd) {
+	    d=s1.length();
+	    break;
+	  }
 	}
     }
 
