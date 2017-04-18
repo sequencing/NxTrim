@@ -66,8 +66,7 @@ If you wish to generate pure mate-pair libraries (say for scaffolding), you can 
 
 If you wish to preserve mate-pair libraries whenever possible, the --preservemp flag may be useful.  This will always keep the mate-pair library *unless* a read generated would be <minlength, in which case it will generate a PE.
 
-You can trade specificity/sensitivity of junction adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera junction adapter).  The defaults were well suited to bacteria in our testing.
-
+You can trade specificity/sensitivity of junction adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera junction adapter).  The defaults were well suited to bacteria in our testing. 
 
 ### Example data:
 

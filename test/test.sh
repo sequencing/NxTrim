@@ -46,7 +46,7 @@ velvetg output_dir -exp_cov auto -cov_cutoff auto -shortMatePaired4 yes
  ../nxtrim  -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz --stdout-un | bwa mem EcMG.fna -p - | gzip -1 > un.ham.bam
 
 ## try the sw routine
-time ../nxtrim -1 $r1 -2 $r2  -O EcMG -s 0.7 -w
+time ../nxtrim -1 $r1 -2 $r2  -O EcMG --aggressive
 for i in mp unknown pe ;
 do
     bwa mem $ref -p EcMG.${i}.fastq.gz | gzip -1 > ${i%fastq.gz}.bam
