@@ -31,11 +31,12 @@ void usage() {
   cerr << "  --preserve-mp                   preserve MPs even when the corresponding PE has longer reads"<<endl;
   cerr << "  --ignorePF                      ignore chastity/purity filters in read headers"<<endl;
   cerr << "  --separate                      output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved."<<endl;
-  cerr <<
-"  -s, --similarity arg (=0.85)    The minimum similarity between strings to be considered a match\n                                   For hamming:   ceiling( (1-similarity) * string_length )\n                                   For SW:        sw_score / min(target_alignment_length,query_alignment_length)"<<endl;
+  cerr << "  -a, --aggressive                more aggressive adapter search (see docs/adapter.md)"<<endl;
+  cerr << "  -s, --similarity arg (=0.85)    The minimum similarity between strings to be considered a match\n                                   For hamming:   ceiling( (1-similarity) * string_length )"<<endl;
+//"\n                                   For SW:        sw_score / min(target_alignment_length,query_alignment_length)"<<endl;
   cerr << "  -v, --minoverlap arg (=12       The minimum overlap to be considered for matching"<<endl;
   cerr << "  -l, --minlength arg (=21)       The minimum read length to output (smaller reads will be filtered)"<<endl;
-  cerr << "  -w, --smith-waterman            Use Smith-Waterman alignmnent rather than simple Hamming matching"<<endl;
+//  cerr << "  -w, --smith-waterman            Use Smith-Waterman alignmnent rather than simple Hamming matching"<<endl;
   exit(0);
 }
 
@@ -50,6 +51,7 @@ void usage() {
 #define SEPARATE 8
 #define STDOUT_MP 9
 #define STDOUT_UN 10
+#define AGGRESSIVE 11
 
 int main(int argc,char **argv) {
   int c;
@@ -72,7 +74,7 @@ int main(int argc,char **argv) {
   bool write_stdout_un=false;
   bool hamming = true;
   bool separate=false;
-  
+  bool aggressive=false;
   static struct option loptions[] =    {
     {"r1",1,0,'1'},	
     {"r2",1,0,'2'},	
@@ -84,6 +86,7 @@ int main(int argc,char **argv) {
     {"joinreads",0,0,JOINREADS},
     {"rf",0,0,NORC},
     {"preserve-mp",0,0,PMP},
+    {"aggressive",0,0,AGGRESSIVE},    
     {"ignorePF",0,0,IGNOREPF},
     {"mp",0,0,MP},
     {"unknown",0,0,UNKNOWN},
@@ -94,7 +97,7 @@ int main(int argc,char **argv) {
     {"minlength",1,0,'l'},
     {0,0,0,0}
   };
-  while ((c = getopt_long(argc, argv, "1:2:O:s:v:l:w",loptions,NULL)) >= 0) {  
+  while ((c = getopt_long(argc, argv, "1:2:O:s:v:l:",loptions,NULL)) >= 0) {  
     switch (c)
       {
       case '1': r1 = optarg; break;
@@ -102,7 +105,8 @@ int main(int argc,char **argv) {
       case 'O': prefix = optarg; break;
       case 's': similarity = atof(optarg); break;    
       case 'v': minoverlap = atoi(optarg); break;    
-      case 'l': minlen = atoi(optarg); break;    
+      case 'l': minlen = atoi(optarg); break;
+      case AGGRESSIVE: aggressive = true; break;
       case STDOUT: write_stdout=true; break;    
       case STDOUT_MP: write_stdout_mp=true; break;    
       case STDOUT_UN: write_stdout_un=true; break;    
@@ -141,6 +145,7 @@ int main(int argc,char **argv) {
   cerr << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
   if(preserve_mp) cerr<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
   if(joinreads) cerr<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
+  if(aggressive) cerr<< "--aggressive is on: will spend extra time searching for adapter" <<endl;
 
 
   if(justmp)
@@ -152,6 +157,7 @@ int main(int argc,char **argv) {
   readPair p;
   pair<int,int> pos;
   matePair m;
+  m.setAggressive(aggressive);
   int nweird=0,npass=0,nread=0;
   bool trim_warn=true;
 
