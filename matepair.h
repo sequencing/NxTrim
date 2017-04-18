@@ -38,7 +38,7 @@ class matePair {
   //stuff for shredding
   vector<string> seeds;
   int nseed,seedsize;
-
+  bool _aggressive;
 };
 
 //handles the output for nxtrim (which reads go to which file etc)

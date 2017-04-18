@@ -57,34 +57,82 @@ unsigned char seq_nt4_table[256] = {
 
 
 //only handles substitution errors in adapter (faster)
-int hamming_match(string & s1,string & s2,int minoverlap,float similarity) {
-    //  assert(s2.size()<s1.size());
-    if(s2.size()>=s1.size())
-	return(s1.size());
-    int mini=s1.size(),mind=s2.size();
-    assert((int)s1.size()>=minoverlap);
-  
-    int start = -(s2.size()-minoverlap);
-    int stop = s1.size() - minoverlap;
-    //  cerr << "Range: " << start << " " << stop << endl;
-    for(int i=start;i<stop;i++) {
-	float compare_length = s2.size();
-	if( i<0) compare_length += i;
-	if( (int)s2.size() > ((int)s1.size()-i)) compare_length = (float)(s1.size()-i);
-	int maxdist = ceil ( (1.-similarity) * compare_length);
-	int d = hamming(s1,s2,i,0,s2.size(),maxdist);
+int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
+{
+    int L1=s1.size();
+    int L2=s2.size();
+    if(L2>=L1)
+    {
+	return(L1);	
+    }
 
-	if(d<mind&&d<maxdist) {
+    assert((int)L1>=minoverlap);
+    //check for full s2 matches. 
+    int maxdist = ceil ( (1.-similarity) * L2);
+    int mini=L1,mind=L2;    
+    for(int i=0;i<(L1-L2);i++)
+    {
+	int d=0,j=0;
+	while(j<L2&&d<maxdist)
+	{
+	    d += s1[i+j]!=s2[j++];	    
+	}
+
+	if(d<mind)
+	{
 	    mini=i;
 	    mind=d;
-	    if(DEBUG>2) {
-		cerr << compare_length << endl;
-		cerr << mini << " " << mind << "<" << mind << endl;
-	    }
+	}
+    }
+    
+    if(mind<maxdist)
+    {
+	return(mini);
+    }
+    
+    //no full match. check the edges.
+    mini=L1,mind=L2;
+    for(int i=L2-1;i>=minoverlap;i--)
+    {
+	maxdist = ceil ( (1.-similarity) * i);
+	//check the front of s1
+	int j=L2-i,d=0;
+	while(j<L2&&d<maxdist)
+	{
+	    d+=s1[j-L2+i]!=s2[j++];
+	}
+	if(d<mind)
+	{
+	    mini=i-L2;
+	    mind=d;
+	}
+        //check the back of s1
+	int d_back=0;
+	j=L1-i;
+	while(j<L1&&d_back<maxdist)
+	{
+	    d_back+=s1[j++]!=s2[j-L1+i];
+	}
+	if(d_back<mind)
+	{
+	    mini=L1-i;
+	    mind=d_back;
 	}
     }
 
-    return(mini);
+    // cerr << "Query:  "<<s1 <<endl;
+    // cerr << "Target: "<<s2 <<endl;
+    // cerr << "L1/L2 = " << L1<<"/"<<L2<<endl;
+    // cerr<< "mini="<<mini<<endl;
+    // cerr<< "mind="<<mind<<endl;
+    // cerr<< "maxdist="<<maxdist<<endl;    
+    
+    if(mind<maxdist)
+    {
+	return(mini);
+    }
+
+    return L1;
 }
 
 void ta_opt_set_mat(int sa, int sb, int8_t mat[25])
@@ -247,23 +295,25 @@ int matePair::findAdapter(string & s,int minoverlap,float similarity,bool use_ha
     if(!use_hamming) free(s_tmp);
 
     //check for shredded junction adapter (aggressive detection mode)
-    for(int i=0;i<nseed;i++)
+    if(_aggressive)
     {
-      int start=L1;
-      if(similarity<1)
-      {
-	  start=hamming_match(s,seeds[i],seedsize,similarity);
-      }
-      else
-      {
-	  start = s.find(seeds[i]);
-      }
-      if(start<L1) 
-      {//found a seed
-	  return(start-i);
-      }
-    }
-    
+	for(int i=0;i<nseed;i++)
+	{
+	    int start=L1;
+	    if(similarity<1)
+	    {
+		start=hamming_match(s,seeds[i],seedsize,similarity);
+	    }
+	    else
+	    {
+		start = s.find(seeds[i]);
+	    }
+	    if(start<L1) 
+	    {//found a seed
+		return(start-i);
+	    }
+	}
+    }    
     //ok nothing found. return end of string.
     return(L1);
 }
@@ -383,6 +433,7 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
 
 matePair::matePair()
 {
+    _aggressive=false;
     ta_opt_set_mat(SW_MATCH,SW_MISMATCH,sw_mat);
     adapter1_sw=(uint8_t *)malloc(adapter1.length()+1);
     for(size_t i=0;i<adapter1.length();i++)
@@ -411,12 +462,6 @@ matePair::matePair()
       nseed++;
     }
 }
-
-//this is not redundant.
-// matePair::matePair(readPair& readpair,int minovl,float sim,int ml,bool jr,bool uh,bool pmp,bool jmp)
-// {
-//     build(readpair,minovl,sim,ml,jr,uh,pmp,jmp);
-// }
 
 matePair::~matePair()
 {
