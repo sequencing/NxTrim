@@ -5,7 +5,6 @@ string adapter1 = "CTGTCTCTTATACACATCT";
 string adapter2 = "AGATGTGTATAAGAGACAG";
 string adapterj = adapter1+adapter2;
 
-
 //EXTERNAL adapters. this are used to clip very short dna fragments where R1 goes into R2
 // string r1_external_adapter = "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC";
 // string r2_external_adapter = "ACACTCTTTCCCTACACGACGCTCTTCCGATC";                
