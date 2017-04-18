@@ -38,4 +38,5 @@ ecmg: nxtrim
 	cd test/;bash -e ecmg.sh
 clean:
 	rm *.o nxtrim test mergeReads version.h
-	rm -rf output_dir/
+	rm -rf test/output_dir/
+	rm test/*bam test/*pe.fastq.gz test/*mp.fastq.gz  test/*unknown.fastq.gz

@@ -1,10 +1,14 @@
+2017.04.18
+*added --aggressive mode for more thorough adapter search
+*improved speed of hamming distance calculations
+
 2017.04.17
 *added smith-waterman routine for adapter detection - still needs improvement
 *added a build script for E.coli MG1655 "make ecmg"
-	
+
 2017.04.08
 *improved detection of reads where two copies of the Nextera junction adapter are present
-	
+
 2017.03.28
 *better error reporting for malformed reads
 
