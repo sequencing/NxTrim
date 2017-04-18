@@ -1,5 +1,4 @@
 #include "matepair.h"
-//smith-waterman alignment/scoring code was shamelessly taken from Heng Li's trimadap https://github.com/lh3/trimadap
 
 //nextera mp adapters
 string adapter1 = "CTGTCTCTTATACACATCT";
@@ -95,6 +94,7 @@ int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
     for(int i=L2-1;i>=minoverlap;i--)
     {
 	maxdist = ceil ( (1.-similarity) * i);
+
 	//check the front of s1
 	int j=L2-i,d=0;
 	while(j<L2&&d<maxdist)
@@ -106,12 +106,14 @@ int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
 	    mini=i-L2;
 	    mind=d;
 	}
+	
         //check the back of s1
 	int d_back=0;
 	j=L1-i;
 	while(j<L1&&d_back<maxdist)
 	{
-	    d_back+=s1[j++]!=s2[j-L1+i];
+	    d_back+=s1[j]!=s2[j-L1+i];
+	    j++;
 	}
 	if(d_back<mind)
 	{
@@ -120,13 +122,6 @@ int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
 	}
     }
 
-    // cerr << "Query:  "<<s1 <<endl;
-    // cerr << "Target: "<<s2 <<endl;
-    // cerr << "L1/L2 = " << L1<<"/"<<L2<<endl;
-    // cerr<< "mini="<<mini<<endl;
-    // cerr<< "mind="<<mind<<endl;
-    // cerr<< "maxdist="<<maxdist<<endl;    
-    
     if(mind<maxdist)
     {
 	return(mini);
