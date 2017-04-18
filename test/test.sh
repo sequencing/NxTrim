@@ -45,6 +45,8 @@ velvetg output_dir -exp_cov auto -cov_cutoff auto -shortMatePaired4 yes
 
  ../nxtrim  -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz --stdout-un | bwa mem EcMG.fna -p - | gzip -1 > un.ham.bam
 
+ for i in mp.ham.bam mp.agg.bam un.ham.bam un.agg.bam;do echo $i; /usr/bin/python alignment_summary.py  $i;done
+ 
 ## try the sw routine
 time ../nxtrim -1 $r1 -2 $r2  -O EcMG --aggressive
 for i in mp unknown pe ;
