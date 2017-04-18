@@ -37,11 +37,11 @@ velvetg output_dir -exp_cov auto -cov_cutoff auto -shortMatePaired4 yes
 
 
 ##do some alignments 
-../nxtrim -s .7 -w -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz --stdout-mp | bwa mem EcMG.fna -p - | gzip -1 > mp.sw.bam
+../nxtrim --aggressive -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz --stdout-mp | bwa mem EcMG.fna -p - | gzip -1 > mp.agg.bam
 
  ../nxtrim  -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz --stdout-mp | bwa mem EcMG.fna -p - | gzip -1 > mp.ham.bam
 
- ../nxtrim -s .7 -w -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz --stdout-un | bwa mem EcMG.fna -p - | gzip -1 > un.sw.bam
+ ../nxtrim --aggressive -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz --stdout-un | bwa mem EcMG.fna -p - | gzip -1 > un.agg.bam
 
  ../nxtrim  -1 EcMG1_ATGTCA_L001_R1_001.fastq.gz -2 EcMG1_ATGTCA_L001_R2_001.fastq.gz --stdout-un | bwa mem EcMG.fna -p - | gzip -1 > un.ham.bam
 
@@ -52,4 +52,4 @@ do
     bwa mem $ref -p EcMG.${i}.fastq.gz | gzip -1 > ${i%fastq.gz}.bam
 done
 
-for i in *bam;do echo $i; /usr/bin/python alignment_summary.py  $i;done
+for i in mp.bam unknown.bam pe.bam;do echo $i; /usr/bin/python alignment_summary.py  $i;done
