@@ -20,4 +20,5 @@ CTGTCTCT-TA-TACACATCTAGATGT-GTATAAGAGACAG
 
 Turning on `--aggressive` will seek for adapters more aggressively. Rather than just check for the left/right side of the adapters with Hamming distance, it shreds the 38bp junction adapter into 19-mers and then checks if any of these are present in the reads. If any 19-mer match within the specified similarity is found, it will clip the read appropriately. This approach finds a very modest increase in adapters, but doesn't have a practical impact on assembly quality in my hands. Your mileage may vary.
 
-Ideally we would use a seed-and-extend approach as implemented in tools such as [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic). The rate of missed adapters with `--aggressive` on was around 1/10,000 for MP/PE libraries and 1/1500 for UNKNOWN libraries in one test on 2x151bp E. coli K-12 MG1655 run (missed adapters found with blast).
+Ideally we would use a seed-and-extend approach as implemented in tools such as [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic). The rate of missed adapters with `--aggressive` on was around 1 per 8000 read-pairs in one test on 2x151bp E. coli K-12 MG1655 run (missed adapters found with blast).
+
