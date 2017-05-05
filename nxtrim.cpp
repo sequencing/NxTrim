@@ -158,7 +158,7 @@ int main(int argc,char **argv) {
   pair<int,int> pos;
   matePair m;
   m.setAggressive(aggressive);
-  int nweird=0,npass=0,nread=0;
+  int num_reads_with_multiple_adapters=0,npass=0,nread=0;
   bool trim_warn=true;
 
   nxtrimWriter out;
@@ -181,7 +181,7 @@ int main(int argc,char **argv) {
     if((!p.r1.filtered && !p.r2.filtered)||ignorePF)
     {
       bool weird=m.build(p,minoverlap,similarity,minlen,joinreads,hamming,preserve_mp,justmp);
-      nweird+=weird;
+      num_reads_with_multiple_adapters+=weird;
       if(!weird) {
 	nodata+=( (m.mp.r1.l==0||m.mp.r2.l==0) && (m.pe.r1.l==0||m.pe.r2.l==0) && (m.unknown.r1.l==0||m.unknown.r2.l==0) && m.se.l==0);
 	se_only += ( (m.mp.r1.l==0||m.mp.r2.l==0) && (m.pe.r1.l==0||m.pe.r2.l==0) && (m.unknown.r1.l==0||m.unknown.r2.l==0) ) && m.se.l>0;
@@ -203,8 +203,8 @@ int main(int argc,char **argv) {
   }
   cerr << "\nTrimming summary:"<<endl;
   cerr << percent(npass,nread) << "reads passed chastity/purity filters."<<endl;
-  cerr << percent(nweird,npass) << "reads had TWO copies of adapter (filtered)."<<endl;
-  npass-=nweird;
+  cerr << percent(num_reads_with_multiple_adapters,npass) << "reads had multiple copies of adapter (filtered)."<<endl;
+  npass-=num_reads_with_multiple_adapters;
   cerr << percent(nodata,npass) << "read pairs were ignored because template length appeared less than read length"<<endl;
   npass-=nodata;
   cerr << npass << " remaining reads were trimmed"<<endl<<endl;
