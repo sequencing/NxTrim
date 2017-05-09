@@ -12,7 +12,7 @@ debug: all
 
 GIT_HASH := $(shell git describe --abbrev=4 --always )
 
-VERSION = v0.4.1
+VERSION = v0.4.2
 GIT_VERSION =
 ifneq "$(wildcard .git)" ""
 GIT_VERSION = -$(shell git describe --always)
