@@ -248,27 +248,33 @@ int matePair::resolve_overhang(fqread & r1, fqread & r2,int a,int b) {
 	cerr << r2.s <<endl;;
 	cerr << tmp2.s << endl;
     }
-    if(a<minlen) {//preceeding dna is too small. 
+    if(a<minlen) 
+    {//preceeding dna is too small. 
 	//TODO:could possibly merge for a big read here
-	if(_justmp) {
+	if(_justmp) 
+	{
 	    mp.r1 = r1.mask();
 	    mp.r2 = r2;
 	}
-	else {
+	else 
+	{
 	    pe.r1 = tmp1;
 	    pe.r2 = r2;
 	}
     }
-    else if(joinReads(r2,tmp2,mp.r2)) {
+    else if(joinReads(r2,tmp2,mp.r2)) 
+    {
 	mp.r1=r1.window(0,a);
     }
-    else if(r1.notN(b,r1.l)>r1.notN(0,a) && !preserve_mp) {
+    else if(r1.notN(b,r1.l)>r1.notN(0,a) && !preserve_mp) 
+    {
 	pe.r1=tmp1;
 	pe.r2=r2;
 	if(a>=minlen)
 	    se = r1.window(0,a);
     }
-    else {
+    else 
+    {
 	if(tmp1.l>=minlen)
 	    se = tmp1;
 	mp.r1=r1.window(0,a);
@@ -297,7 +303,8 @@ matePair::~matePair()
 {
 }
 
-int matePair::clear() {
+int matePair::clear() 
+{
     mp.r1.clear();
     mp.r2.clear();
     pe.r1.clear();
@@ -373,25 +380,30 @@ bool matePair::trimExternal(readPair& rp)
 	fqread rc2 = rp.r2.rc();
     
 	int mini=rp.r1.l,mind=rp.r1.l;
-	for(int i=0;i<(rp.r1.l-minlen);i++) {
+	for(int i=0;i<(rp.r1.l-minlen);i++) 
+	{
 	    int compare_length = rp.r2.l-i;
 	    int maxdist = ceil ( (1.-similarity) * compare_length);
 	    int d = hamming(rp.r1.s,rc2.s,0,i,rp.r2.l-i,maxdist);
-	    if(d<mind&&d<maxdist) {
+	    if(d<mind&&d<maxdist) 
+	    {
 		mini = i;
 		mind = d;
 	    }
 	}
-	if(mini<rp.r1.l) {
+	if(mini<rp.r1.l) 
+	{
 	    a=rp.r1.l-mini;
 	    b=rp.r2.l-mini;
 	    if(DEBUG>1)      cerr <<"OVERLAP FOUND "<< a <<" " << b<<endl;
 	}
     }
 
-    if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r2.l)) {
+    if((a>0 && a<rp.r1.l)||(b>0 && b<rp.r2.l)) 
+    {
 	found = true;
-	if(_justmp) {
+	if(_justmp) 
+	{
 	    mp.r1 = rp.r1;      
 	    mp.r2 = rp.r2;
 	    if(a<rp.r1.l)
@@ -401,7 +413,8 @@ bool matePair::trimExternal(readPair& rp)
 		mp.r2 = rp.r2.mask();
 
 	}
-	else {
+	else 
+	{
 	    if(a<rp.r1.l)
 		pe.r1 = rp.r1.window(0,a);
 	    else
@@ -416,7 +429,8 @@ bool matePair::trimExternal(readPair& rp)
 }
 
 //aligns s2 to s1 with sim>=sim. returns s1.size() if no alignment found
-unsigned int matePair::ham_align(string & s1,string & s2) {
+unsigned int matePair::ham_align(string & s1,string & s2) 
+{
     if(s1.size()<s2.size())
 	return(s1.size());
 
@@ -426,10 +440,12 @@ unsigned int matePair::ham_align(string & s1,string & s2) {
     int maxd = ceil ( (1.-similarity) * L2);
     int mind=maxd,mini=L1;
     int d;
-    for(int i=0;i<(L1-L2);i++) {
+    for(int i=0;i<(L1-L2);i++) 
+    {
 	d = hamming(s1,s2,L1-i-L2,0,L2,maxd);
 
-	if(d<mind) {
+	if(d<mind) 
+	{
 	    mind=d;
 	    mini=L1-i;
 	}
@@ -441,15 +457,18 @@ unsigned int matePair::ham_align(string & s1,string & s2) {
 
 
 //checks the right end of a read for partial adapter hit
-int checkRight(string & s1,string & adapter,int offset,int minoverlap,float similarity) {
+int checkRight(string & s1,string & adapter,int offset,int minoverlap,float similarity) 
+{
     assert(offset < (s1.size()-minoverlap));
     int a=s1.size();
     int mind = s1.size();
-    for(int i=offset;i<(s1.size()-minoverlap);i++) {
+    for(int i=offset;i<(s1.size()-minoverlap);i++) 
+    {
 	int compare_len = (s1.size() - i);
 	int maxdist = ceil(compare_len * (1. - similarity));
 	int d = hamming(s1,adapter,i,0,compare_len,maxdist);
-	if(d<mind&&d<maxdist) {
+	if(d<mind&&d<maxdist) 
+	{
 	    a=i;
 	    mind=d;
 	}
@@ -564,29 +583,36 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
 	bool both_have_adapter = a1<L1 && a2<L2;
 	bool R1_has_adapter_at_end =  a1<L1 && b1>=(L1-minlen);
 	bool R2_has_adapter_at_end =  a2<L2 && b2>=(L2-minlen);
-	if(a1<minlen&&a2<minlen) {//very short template. discard
+	if(a1<minlen&&a2<minlen) 
+	{//very short template. discard
 	    return(0);
 	}
-	else if(a1<(L1-minoverlap) && a2<minlen) {//r2 redundant
+	else if(a1<(L1-minoverlap) && a2<minlen) 
+	{//r2 redundant
 	    if(_justmp) 
 		mp=readPair(readpair.r1.window(0,a1),readpair.r2.mask()) ;
 	    else
 		se = readpair.r1.window(0,a1); 
 	    if(DEBUG>1) cerr << "CASE B"<<endl;
 	}
-	else if(a2<(L2-minoverlap) && a1<minlen) {//r1 redundant
+	else if(a2<(L2-minoverlap) && a1<minlen) 
+	{//r1 redundant
 	    if(_justmp)
 		mp=readPair(readpair.r1.mask(),readpair.r2.window(0,a2));
 	    else
 		se = readpair.r2.window(0,a2);    
 	    if(DEBUG>1) cerr << "CASE C"<<endl;
 	}
-	else if(a1>=(L1-minoverlap) && a2<minlen) {//obvious PE
-	    if(a1>=minlen && (L2-b2)>=minlen) {
-		if(_justmp) {
+	else if(a1>=(L1-minoverlap) && a2<minlen) 
+	{//obvious PE
+	    if(a1>=minlen && (L2-b2)>=minlen) 
+	    {
+		if(_justmp) 
+		{
 		    mp=readPair(readpair.r1.window(0,a1),readpair.r2.mask()) ;
 		}
-		else {
+		else 
+		{
 		    pe.r1 = readpair.r1.window(0,a1);  
 		    pe.r2 = readpair.r2.window(b2,b2+a1);
 		}        
