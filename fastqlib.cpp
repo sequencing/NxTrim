@@ -243,7 +243,9 @@ int fastqWriter::write(fqread & read)
 	    write_ok = write_ok && gzwrite(fp,(char *)read.q.c_str(),read.q.size())!=0;
 	    write_ok = write_ok && gzwrite(fp,"\n",1)!=0;
 	    if(!write_ok)
+	    {
 		die("problem writing output");
+	    }
 	}
 	return(1);
     }
@@ -296,10 +298,18 @@ void readPair::print()
 
 int pairReader::next(readPair & p)
 {
-    bool ret = f1->next(p.r1)&&f2->next(p.r2);
-    if(ret) 
+    bool ret1 = f1->next(p.r1);
+    bool ret2 = f2->next(p.r2);
+    if( (!ret1 && ret2) || (ret1 && !ret2) )
+    {
+	die("R1/R2 files are out of sync. Check your input.");
+    }
+
+    if(ret1&&ret2) 
+    {
 	p.filtered = p.r1.filtered || p.r2.filtered;
-    return(ret);
+    }
+    return(ret1&&ret2);
 }
 
 pairWriter::pairWriter()

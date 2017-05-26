@@ -1,3 +1,6 @@
+2017.05.26
+*added a check to make sure R1/R2 files have same number of lines
+
 2017.04.18
 *added --aggressive mode for more thorough adapter search
 *improved speed of hamming distance calculations
