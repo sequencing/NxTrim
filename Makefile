@@ -33,7 +33,7 @@ fastqlib.o: fastqlib.cpp fastqlib.h utilityfunc.h
 utilityfunc.o:  utilityfunc.cpp utilityfunc.h
 	$(CXX) $(CXXFLAGS) -c utilityfunc.cpp
 test: nxtrim
-	bash example/run_test.sh
+	bash -e example/run_test.sh
 ecmg: nxtrim
 	cd test/;bash -e ecmg.sh
 clean:

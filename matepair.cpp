@@ -459,7 +459,7 @@ unsigned int matePair::ham_align(string & s1,string & s2)
 //checks the right end of a read for partial adapter hit
 int checkRight(string & s1,string & adapter,int offset,int minoverlap,float similarity) 
 {
-    assert(offset < (s1.size()-minoverlap));
+    assert(offset <= (s1.size()-minoverlap));
     int a=s1.size();
     int mind = s1.size();
     for(int i=offset;i<(s1.size()-minoverlap);i++) 
@@ -490,9 +490,9 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     use_hamming=uh;
     int L1 = readpair.r1.l;
     int L2 = readpair.r2.l;
-    if(L1<minlen||L2<minlen)
+    if(L1<minoverlap||L2<minoverlap)
     {
-	cerr << "WARNING: read with length < minimum length ("<<minlen<<"). Will discard this read pair:"<<endl;
+	cerr << "WARNING: read with length < minimum overlap length ("<<minoverlap<<"). Will discard this read pair:"<<endl;
 	cerr << "@" << readpair.r1.h <<endl;
 	cerr  << readpair.r1.s <<endl;
 	cerr  << readpair.r1.l3 <<endl;
@@ -554,7 +554,7 @@ int matePair::build(readPair& readpair,int minovl,float sim,int ml,bool jr,bool 
     {
 	cerr << "adapter locations (second pass): "<<a1 <<  " " << b1  <<  " " <<  a2  <<  " " <<  b2 << endl;
     }
-    int minoverlap2 = 1; //final attempt to find unidfentifed adapters
+    int minoverlap2 = 1; //final attempt to find unidentified adapters
     if(a1<L1&&a2==L2)//we know R1 has adapter. try check R2 for adapter with more liberal thresholds
 	a2 = checkRight(readpair.r2.s,adapter1, L2-minoverlap, minoverlap2, similarity);
     if(a2<L2&&a1==L1)//vice-versa

@@ -1,3 +1,6 @@
+2017.05.27
+*will now discard read pairs if one read has length < minoverlap (previously was minlength)
+
 2017.05.26
 *added a check to make sure R1/R2 files have same number of lines
 

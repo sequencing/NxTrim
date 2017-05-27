@@ -138,6 +138,11 @@ int main(int argc,char **argv)
     {
 	die("--minlength must be >0");
     }
+    if(minoverlap<=0)
+    {
+	die("--minoverlap must be >0");
+    }
+
     if(write_stdout||write_stdout_mp||write_stdout_un)
     {
 	cerr << "Writing to stdout"<<endl;
