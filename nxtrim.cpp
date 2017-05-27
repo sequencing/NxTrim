@@ -36,8 +36,8 @@ void usage()
     cerr << "  -a, --aggressive                more aggressive adapter search (see docs/adapter.md)"<<endl;
     cerr << "  -s, --similarity arg (=0.85)    The minimum similarity between strings to be considered a match\n                                   For hamming:   ceiling( (1-similarity) * string_length )"<<endl;
 //"\n                                   For SW:        sw_score / min(target_alignment_length,query_alignment_length)"<<endl;
-    cerr << "  -v, --minoverlap arg (=12       The minimum overlap to be considered for matching"<<endl;
-    cerr << "  -l, --minlength arg (=21)       The minimum read length to output (smaller reads will be filtered)"<<endl;
+    cerr << "  -v, --minoverlap arg (=12)      The minimum overlap to be considered for matching"<<endl;
+    cerr << "  -l, --minlength arg  (=21)      The minimum read length to output (smaller reads will be filtered)"<<endl;
 //  cerr << "  -w, --smith-waterman            Use Smith-Waterman alignmnent rather than simple Hamming matching"<<endl;
     exit(0);
 }
