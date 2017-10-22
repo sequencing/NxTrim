@@ -5,7 +5,7 @@ CC ?= gcc
 CXXFLAGS ?= -O3
 LFLAGS = -lz
 
-all: mergeReads nxtrim
+all: nxtrim
 
 debug: CXXFLAGS += -Wall -g
 debug: all
@@ -24,8 +24,6 @@ unit_test: test.cpp fastqlib.o utilityfunc.o matepair.o
 	$(CXX) $(CXXFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o unit_test   $(LFLAGS)
 nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o version.h 
 	$(CXX) $(CXXFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o  -o nxtrim  $(LFLAGS)
-mergeReads: mergeReads.cpp fastqlib.o utilityfunc.o fastqlib.o githash.h version.h
-	$(CXX) $(CXXFLAGS)  mergeReads.cpp fastqlib.o utilityfunc.o -o mergeReads   $(LFLAGS)
 matepair.o: matepair.cpp matepair.h fastqlib.h
 	$(CXX) $(CXXFLAGS) -c matepair.cpp
 fastqlib.o: fastqlib.cpp fastqlib.h utilityfunc.h
@@ -37,6 +35,6 @@ test: nxtrim
 ecmg: nxtrim
 	cd test/;bash -e ecmg.sh
 clean:
-	rm *.o nxtrim test mergeReads version.h
+	rm *.o nxtrim test version.h
 	rm -rf test/output_dir/
 	rm test/*bam test/*pe.fastq.gz test/*mp.fastq.gz  test/*unknown.fastq.gz
