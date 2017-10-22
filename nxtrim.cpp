@@ -28,17 +28,15 @@ void usage()
     cerr << "  --stdout                        print trimmed reads to stdout (equivalent to justmp)"<<endl;
     cerr << "  --stdout-mp                     print only known MP reads to stdout (good for scaffolding)"<<endl;
     cerr << "  --stdout-un                     print only unknown reads to stdout"<<endl;
-    cerr << "  --joinreads                     try to merge overhangs from R2 with R1 (default: no joining)"<<endl;
     cerr << "  --rf                            leave mate pair reads in RF orientation [by default are flipped into FR]"<<endl;
     cerr << "  --preserve-mp                   preserve MPs even when the corresponding PE has longer reads"<<endl;
     cerr << "  --ignorePF                      ignore chastity/purity filters in read headers"<<endl;
     cerr << "  --separate                      output paired reads in separate files (prefix_R1/prefix_r2). Default is interleaved."<<endl;
     cerr << "  -a, --aggressive                more aggressive adapter search (see docs/adapter.md)"<<endl;
-    cerr << "  -s, --similarity arg (=0.85)    The minimum similarity between strings to be considered a match\n                                   For hamming:   ceiling( (1-similarity) * string_length )"<<endl;
-//"\n                                   For SW:        sw_score / min(target_alignment_length,query_alignment_length)"<<endl;
+    cerr << "  -s, --similarity arg (=0.85)    The minimum similarity between strings to be considered a match (Hamming distance divided by string length)"<<endl;
     cerr << "  -v, --minoverlap arg (=12)      The minimum overlap to be considered for matching"<<endl;
     cerr << "  -l, --minlength arg  (=21)      The minimum read length to output (smaller reads will be filtered)"<<endl;
-//  cerr << "  -w, --smith-waterman            Use Smith-Waterman alignmnent rather than simple Hamming matching"<<endl;
+														    
     exit(0);
 }
 
@@ -157,7 +155,10 @@ int main(int argc,char **argv)
   
     cerr << "Trimming:\nR1:\t" <<r1<<"\nR2:\t"<<r2<<endl;
     if(preserve_mp) cerr<< "--preserve-mp is on: will favour MPs over PEs" <<endl;
-    if(joinreads) cerr<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
+    if(joinreads)  {
+      die("--joinreads is deprecated");
+      cerr<< "--joinreads is on: will attempt to merge R1 with R2 that proceeds an adapter" <<endl;
+    }
     if(aggressive) cerr<< "--aggressive is on: will spend extra time searching for adapter" <<endl;
 
 
