@@ -2,7 +2,7 @@ CXX ?= g++
 CC ?= gcc
 
 
-CXXFLAGS ?= -O3
+CXXFLAGS ?= -O2
 LFLAGS = -lz
 
 all: nxtrim
@@ -20,21 +20,21 @@ endif
 version.h:
 	echo '#define VERSION "$(VERSION)$(GIT_VERSION)"' > $@
 
-unit_test: test.cpp fastqlib.o utilityfunc.o matepair.o
-	$(CXX) $(CXXFLAGS) test.cpp fastqlib.o utilityfunc.o matepair.o -o unit_test   $(LFLAGS)
-nxtrim: nxtrim.cpp fastqlib.o utilityfunc.o matepair.o fastqlib.o version.h 
-	$(CXX) $(CXXFLAGS) nxtrim.cpp fastqlib.o utilityfunc.o matepair.o  -o nxtrim  $(LFLAGS)
+OBJS=matepair.o fastqlib.o utilityfunc.o
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+nxtrim: nxtrim.cpp $(OBJS) version.h
+	$(CXX) $(CXXFLAGS) nxtrim.cpp $(OBJS)  $(LFLAGS) -o $@
 matepair.o: matepair.cpp matepair.h fastqlib.h
-	$(CXX) $(CXXFLAGS) -c matepair.cpp
 fastqlib.o: fastqlib.cpp fastqlib.h utilityfunc.h
-	$(CXX) $(CXXFLAGS) -c fastqlib.cpp
 utilityfunc.o:  utilityfunc.cpp utilityfunc.h
-	$(CXX) $(CXXFLAGS) -c utilityfunc.cpp
 test: nxtrim
 	bash -e example/run_test.sh
 ecmg: nxtrim
 	cd test/;bash -e ecmg.sh
 clean:
-	rm *.o nxtrim test version.h
+	rm $(OBJS) nxtrim test version.h
 	rm -rf test/output_dir/
 	rm test/*bam test/*pe.fastq.gz test/*mp.fastq.gz  test/*unknown.fastq.gz
