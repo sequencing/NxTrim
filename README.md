@@ -1,6 +1,6 @@
 nxtrim: Software to remove Nextera Mate Pair junction adapters and categorise reads according to the orientation implied by the adapter location.  This software is not commercially supported.
 
-Copyright (c) 2016, Illumina, Inc. All rights reserved.
+Copyright (c) 2017, Illumina, Inc. All rights reserved.
 
 This software is provided under the terms and conditions of the BSD 2-Clause License
 
@@ -60,13 +60,13 @@ The default behaviour expects raw fastq files from a Nextera Mate-Pair library k
 
 ### Options:
 
-The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse (FR) orientation, if you wish to keep your reads as Reverse-Forward then use --rf flag.
+The trimmer will reverse-complement the reads such that the resulting libraries will be in Forward-Reverse (FR) orientation, if you wish to keep your reads as Reverse-Forward then use `--rf` flag.
 
-If you wish to generate pure mate-pair libraries (say for scaffolding), you can use the --justmp flag.  This will only generate the unknown and mp libraries.  Reads with a junction adapter occurring < minlength bp before the start will be completely N masked.
+If you wish to generate pure mate-pair libraries (say for scaffolding), you can use the `--justmp` flag.  This will only generate the unknown and mp libraries.  Reads with a junction adapter occurring < minlength bp before the start will be completely N masked.
 
-If you wish to preserve mate-pair libraries whenever possible, the --preservemp flag may be useful.  This will always keep the mate-pair library *unless* a read generated would be <minlength, in which case it will generate a PE.
+If you wish to preserve mate-pair libraries whenever possible, the `--preservemp` flag may be useful.  This will always keep the mate-pair library *unless* a read generated would be < minlength, in which case it will generate a PE.
 
-You can trade specificity/sensitivity of junction adapter detection with the --similarity flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera junction adapter).  The defaults were well suited to bacteria in our testing.
+You can trade specificity/sensitivity of junction adapter detection with the `--similarity` flag (1 - proportion of bp differences allowed for match) and the --minoverlap flag (minimum #bp considered on the ends of reads to match with the Nextera junction adapter).  The defaults were well suited to bacteria in our testing.
 
 You can turn on a more aggressive search for junction adapters with `--aggressive`. [Some notes on how we detect adapters are here](https://github.com/sequencing/NxTrim/blob/master/docs/adapter_matching.md).
 
