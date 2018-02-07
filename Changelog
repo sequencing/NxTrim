@@ -1,3 +1,6 @@
+2018.02.07
+*improved a warning message
+
 2017.10.22
 *removed the mergeReads binary (see seqtk for equivalent functionality)
 *deprecated joinReads functionality
