@@ -51,7 +51,6 @@ void usage()
 #define SEPARATE 8
 #define STDOUT_MP 9
 #define STDOUT_UN 10
-#define AGGRESSIVE 11
 
 int main(int argc,char **argv) 
 {
@@ -87,7 +86,7 @@ int main(int argc,char **argv)
 	{"joinreads",0,0,JOINREADS},
 	{"rf",0,0,NORC},
 	{"preserve-mp",0,0,PMP},
-	{"aggressive",0,0,AGGRESSIVE},    
+	{"aggressive",0,0,'a'},    
 	{"ignorePF",0,0,IGNOREPF},
 	{"mp",0,0,MP},
 	{"unknown",0,0,UNKNOWN},
@@ -98,7 +97,7 @@ int main(int argc,char **argv)
 	{"minlength",1,0,'l'},
 	{0,0,0,0}
     };
-    while ((c = getopt_long(argc, argv, "1:2:O:s:v:l:",loptions,NULL)) >= 0) 
+    while ((c = getopt_long(argc, argv, "a1:2:O:s:v:l:",loptions,NULL)) >= 0) 
     {  
 	switch (c)
 	{
@@ -108,7 +107,7 @@ int main(int argc,char **argv)
 	case 's': similarity = atof(optarg); break;    
 	case 'v': minoverlap = atoi(optarg); break;    
 	case 'l': minlen = atoi(optarg); break;
-	case AGGRESSIVE: aggressive = true; break;
+	case 'a': aggressive = true; break;
 	case STDOUT: write_stdout=true; break;    
 	case STDOUT_MP: write_stdout_mp=true; break;    
 	case STDOUT_UN: write_stdout_un=true; break;    
@@ -190,7 +189,7 @@ int main(int argc,char **argv)
 
 	if(p.r1.l!=p.r2.l && trim_warn)
 	{
-	    cerr << "WARNING: reads with differing lengths. Has this data already been trimmed?"<<endl;
+	    cerr << "WARNING: reads with differing lengths. Has this data already been processed with nxtrim?"<<endl;
 	    trim_warn=false;
 	}
 	if((!p.r1.filtered && !p.r2.filtered)||ignorePF)

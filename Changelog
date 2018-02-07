@@ -1,3 +1,7 @@
+2018.02.07
+*improved a warning message
+*fixed a command line parsing bug where `-a` would not trigger (long form --aggressive still worked)
+
 2017.10.22
 *removed the mergeReads binary (see seqtk for equivalent functionality)
 *deprecated joinReads functionality
