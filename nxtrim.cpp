@@ -17,7 +17,7 @@ void usage()
     cerr << "\nProgram:\tnxtrim" << endl;
     cerr << "Version:\t" << VERSION <<endl;
     cerr << "Contact:\tjoconnell@illumina.com\n" << endl;
-    cerr << "Copyright (c) 2016, Illumina, Inc. All rights reserved. See LICENSE for further details.\n"<<endl;
+    cerr << "Copyright (c) 2018, Illumina, Inc. All rights reserved. See LICENSE for further details.\n"<<endl;
     cerr << "Usage:\tnxtrim -1 R1.fastq.gz -2 R2.fastq.gz [options]\n" << endl;
     cerr << "Required arguments:"    <<endl;
     cerr << "  -1 [ --r1 ] arg                 read 1 in fastq format (gzip allowed)"<<endl;
