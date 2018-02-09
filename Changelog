@@ -1,3 +1,7 @@
+2018.02.09
+*fixed a bug where partial (but perfect match) adapters could be missed	when they were right at the end of a read
+*added some rudimentary unit tests
+
 2018.02.07
 *improved a warning message
 

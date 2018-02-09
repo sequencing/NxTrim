@@ -17,25 +17,26 @@ string r2_external_adapter = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
 
 
 //only handles substitution errors in adapter (faster)
-int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
+int hamming_match(string & target,string & query,int minoverlap,float similarity)
 {
-    int L1=s1.size();
-    int L2=s2.size();
+    int L1=target.size();
+    int L2=query.size();
     if(L2>=L1)
     {
 	return(L1);	
     }
 
     assert((int)L1>=minoverlap);
-    //check for full s2 matches. 
+    //check for full query matches. 
     int maxdist = ceil ( (1.-similarity) * L2);
     int mini=L1,mind=L2;    
-    for(int i=0;i<(L1-L2);i++)
+    for(int i=0;i<=(L1-L2);i++)
     {
 	int d=0,j=0;
 	while(j<L2&&d<maxdist)
 	{
-	    d += s1[i+j]!=s2[j++];	    
+	    d += target[i+j]!=query[j];
+	    j++;
 	}
 
 	if(d<mind)
@@ -44,7 +45,7 @@ int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
 	    mind=d;
 	}
     }
-    
+
     if(mind<maxdist)
     {
 	return(mini);
@@ -56,11 +57,12 @@ int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
     {
 	maxdist = ceil ( (1.-similarity) * i);
 
-	//check the front of s1
+	//check the front of target
 	int j=L2-i,d=0;
 	while(j<L2&&d<maxdist)
 	{
-	    d+=s1[j-L2+i]!=s2[j++];
+	    d+=target[j-L2+i]!=query[j];
+	    j++;
 	}
 	if(d<mind)
 	{
@@ -68,12 +70,12 @@ int hamming_match(string & s1,string & s2,int minoverlap,float similarity)
 	    mind=d;
 	}
 	
-        //check the back of s1
+        //check the back of target
 	int d_back=0;
 	j=L1-i;
 	while(j<L1&&d_back<maxdist)
 	{
-	    d_back+=s1[j]!=s2[j-L1+i];
+	    d_back+=target[j]!=query[j-L1+i];
 	    j++;
 	}
 	if(d_back<mind)
